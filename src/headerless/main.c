@@ -1,14 +1,17 @@
 #include <stdio.h>
 
-#define INCLUDE
-
-//when including headerless files #define INCLUDE and #undef
+#define FOO_C
 #include "foo.c"
+#undef FOO_C
 
-#undef INCLUDE
+#define LOG_C
+#include "log.c"
+#undef LOG_C
+
 
 int main()
 {
     foo();
+    logi();
     return 0;
 }

@@ -8,7 +8,7 @@ char *bar();
 
 //src
 
-#ifndef INCLUDE
+#ifndef BAR_C
 
 #include <string.h>
 #include <stdlib.h>

@@ -7,13 +7,11 @@ void foo();
 #endif
 
 //src
-#ifndef INCLUDE
+#ifndef FOO_C
 
-#define INCLUDE
-
+#define BAR_C
 #include "bar.c"
-
-#undef INCLUDE
+#undef BAR_C
 
 void foo()
 {
