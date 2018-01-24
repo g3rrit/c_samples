@@ -5,103 +5,127 @@
 #include "stdio.h"
 
 #define clears() printf("\033[H\033[J")
-#define gotos(x,y) printf("\033[%d;%dH", (x), (y))
+#define gotos(x,y) printf("\033[%d;%dH", (y+1), (x+1))
 
-#define WIDTH 11
+#define WIDTH 20
 #define HEIGHT 10
 #define BORDER_V '|'
 #define BORDER_H '-'
 #define BORDER_C '+'
+
+#define COLOR_BL 0
+#define COLOR_R 1
+#define COLOR_G 2
+#define COLOR_Y 11
+#define COLOR_B 12
+#define COLOR_W 15
+
 //WIDTH at the end there is a '\n'
 
-char screen[WIDTH * HEIGHT];
+//char screen[WIDTH * HEIGHT];
 
-void screen_fill(char c);
+//char screen_colors[WIDTH * HEIGHT * 3];
+
+void screen_fill_char(char c);
 
 void screen_clear();
 
-void screen_print();
+void screen_set_char(int x, int y, char c);
 
-void screen_set(int x, int y, char c);
+void screen_set_char_color(int x, int y, char c, char color_v, char color_b);
 
 void screen_set_border();
+
+void screen_terminate();
 
 #endif
 
 //src
 #ifndef SCREEN_C
 
+#define set_color_v(c) printf("\033[38;5;%dm",(c))
+#define set_color_b(c) printf("\033[48;5;%dm",(c))
+#define clear_color() printf("\033[0m")
+
 void screen_clear()
 {
-    screen_fill(' ');
+    screen_fill_char('h');
 }
 
-void screen_fill(char c)
-{
-    for(int y = 0; y < HEIGHT; y++)
-    {
-        for(int x = 0; x < WIDTH-1; x++)
-        {
-            screen[WIDTH * y + x] = c;
-        }
-        screen[WIDTH * y + WIDTH -1] = '\n';
-    }
-}
-
-void screen_print()
+void screen_fill_char(char c)
 {
     clears();
     gotos(0,0);
-    printf("%s", screen);
+    char fill_line[WIDTH + 1];
+    for(int i = 0; i < WIDTH; fill_line[i++] = c);
+    fill_line[WIDTH] = 0;
+
+    for(int y = 0; y < HEIGHT; y++)
+    {
+        printf("%s\n", fill_line);
+    }
 }
 
-void screen_set(int x, int y, char c)
+void screen_set_char_color(int x, int y, char c, char color_v, char color_b)
 {
-    if(x >= WIDTH - 1 || x < 0 || y >= HEIGHT || y < 0)
+    if(x >= WIDTH || x < 0 || y >= HEIGHT || y < 0)
         return;
 
-    screen[WIDTH * y + x] = c;
+    gotos(x,y);
+    set_color_v(color_v);
+    set_color_b(color_b);
+    //set_color_b(b_r,b_g,b_b);
+    printf("%c", c);
+    clear_color();
 }
 
 void screen_set_border()
 {
-    //top and bottom side -
-    for(int n = 0; n < 2; n++)
+    char fill_line[WIDTH-1];
+    for(int i = 0; i < WIDTH; fill_line[i++] = BORDER_H);
+    fill_line[WIDTH-2] = 0;
+
+    //fill top
+    gotos(1,0);
+    printf("%s", fill_line);
+
+    //fill bottom
+    gotos(1,HEIGHT-1);
+    printf("%s", fill_line);
+
+    //fill left
+    for(int i = 1; i < HEIGHT - 1; i++)
     {
-        for(int i = 1; i < WIDTH - 2; i++)
-        {
-            if(n % 2)
-            {
-                screen[i] = BORDER_H;
-            }
-            else
-            {
-                screen[WIDTH * (HEIGHT-1) + i] = BORDER_H;
-            }
-        }
+        gotos(0,i);
+        printf("%c", BORDER_V);
     }
-    //left and right side |
-    for(int n = 0; n < 2; n++)
+
+    //fill right
+    for(int i = 1; i < HEIGHT - 1; i++)
     {
-        for(int i = 1; i < HEIGHT - 1; i++)
-        {
-            if(n % 2)
-            {
-                screen[WIDTH * i] = BORDER_V;
-            }
-            else
-            {
-                screen[WIDTH * i + WIDTH - 2] = BORDER_V;
-            }
-        }
+        gotos(WIDTH-1,i);
+        printf("%c", BORDER_V);
     }
-    //corners +
-    screen[0] = BORDER_C;
-    screen[WIDTH - 2] = BORDER_C;
-    screen[WIDTH * (HEIGHT-1)] = BORDER_C;
-    screen[WIDTH * HEIGHT - 2] = BORDER_C;
+
+    //fill edges
+#define border_print() printf("%c", BORDER_C)
+    gotos(0,0);
+    border_print();
+    gotos(WIDTH-1,0);
+    border_print();
+    gotos(0,HEIGHT-1);
+    border_print();
+    gotos(WIDTH-1,HEIGHT-1);
+    border_print();
+#undef border_print
+
+}
+
+void screen_terminate()
+{
+    gotos(WIDTH-1,HEIGHT-1);
+    printf("\n");
 }
 
 #endif
-
 
