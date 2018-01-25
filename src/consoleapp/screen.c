@@ -2,6 +2,7 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include "mstd.h"
 #include "stdio.h"
 
 #define clears() printf("\033[H\033[J")
@@ -34,6 +35,11 @@ void screen_set_char(int x, int y, char c);
 
 void screen_set_char_color(int x, int y, char c, char color_v, char color_b);
 
+//blink true = slow blink; false = rapid blink
+void screen_set_char_color_blink(int x, int y, char c, char color_v, char color_b, bool blink);
+
+void screen_draw_rect(int x, int y, int w ,int h, char c, char color_v, char color_b, bool fill);
+
 void screen_set_border();
 
 void screen_terminate();
@@ -43,13 +49,16 @@ void screen_terminate();
 //src
 #ifndef SCREEN_C
 
+
 #define set_color_v(c) printf("\033[38;5;%dm",(c))
 #define set_color_b(c) printf("\033[48;5;%dm",(c))
+#define set_blink_slow() printf("\033[5m")
+#define set_blink_rapid() printf("\033[6m")
 #define clear_color() printf("\033[0m")
 
 void screen_clear()
 {
-    screen_fill_char('h');
+    screen_fill_char(' ');
 }
 
 void screen_fill_char(char c)
@@ -77,6 +86,47 @@ void screen_set_char_color(int x, int y, char c, char color_v, char color_b)
     //set_color_b(b_r,b_g,b_b);
     printf("%c", c);
     clear_color();
+}
+
+void screen_set_char_color_blink(int x, int y, char c, char color_v, char color_b, bool blink)
+{
+    if(x >= WIDTH || x < 0 || y >= HEIGHT || y < 0)
+        return;
+
+    gotos(x,y);
+    set_color_v(color_v);
+    set_color_b(color_b);
+    if(blink)
+        set_blink_slow();
+    else
+        set_blink_rapid();
+    //set_color_b(b_r,b_g,b_b);
+    printf("%c", c);
+    clear_color();
+}
+
+void screen_draw_rect(int x, int y, int w ,int h, char c,  char color_v, char color_b, bool fill)
+{
+    if(x >= WIDTH || x < 0 || y >= HEIGHT || y < 0)
+        return;
+    
+    for(int _y = 0; _y < h; _y++)
+    {
+        if(y + _y >= HEIGHT)
+            return;
+
+        for(int _x = 0; _x < w; _x++)
+        {
+            if(x + _x >= WIDTH)
+                break;
+
+            if(!fill && _x > 0 && _x < w-1 && _y > 0 && _y < h-1)
+                continue;
+
+            screen_set_char_color(x + _x, y + _y, c, color_v, color_b);
+        }
+    }
+
 }
 
 void screen_set_border()
