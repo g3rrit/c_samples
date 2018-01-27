@@ -26,13 +26,19 @@ int main()
 
     char *shiny = list_remove_at(mlist, 1);     //shiny
     char *big = list_at(mlist, 1);              //big
+    printf("big: %s\n", big);
 
     printf("%s ", list_pop_front(mlist));
     printf("%s ", shiny);
     printf("%s ", big);
+    list_pop_front(mlist);
     printf("%s ", list_pop_front(mlist));
     printf("%s ", list_pop_front(mlist));
     printf("\nlist size: %i\n", mlist->size);
+
+    list_delete(mlist);
+
+    free(mlist);
 
 
     return 0;

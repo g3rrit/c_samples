@@ -4,9 +4,9 @@
 
 struct list_node
 {
-    void *data;
     struct list_node *next;
     struct list_node *prev;
+    void *data;
 };
 
 struct list
@@ -95,6 +95,9 @@ void list_push_front(struct list *this, void *data)
     entry->next = this->head;
     entry->prev = 0;
 
+    if(this->head)
+        this->head->prev = entry;
+
     if(!this->tail)
         this->tail = entry;
     this->size++;
@@ -109,6 +112,9 @@ void list_push_back(struct list *this, void *data)
     entry->data = data;
     entry->next = 0;
     entry->prev = this->tail;
+
+    if(this->tail)
+        this->tail->next = entry;
 
     if(!this->head)
         this->head = entry;
@@ -173,15 +179,18 @@ void *list_at(struct list *this, int x)
     if(x < this->size/2)
     {
         entry = this->head;
-        while(entry->next && (x--) >= 0)
+        while(entry->next && --x >= 0)
         {
             entry = entry->next;     
         }
     }
     else
     {
+        x = this->size - x;
+        x--;
+
         entry = this->tail;
-        while(entry->prev && (x--) >= 0)
+        while(entry->prev && --x >= 0)
         {
             entry = entry->prev;
         }
@@ -199,25 +208,38 @@ void *list_remove_at(struct list *this, int x)
 
     struct list_node **entry;
     //walk forward if x < size/2
-    if(x < this->size/2)
+    //if(x < this->size/2)
+    if(1)
     {
         entry = &this->head;
-        while((*entry)->next && (x--) >= 0)
+        while((*entry)->next && --x >= 0)
         {
             entry = &(*entry)->next;
         }
-        if((*entry)->next)
+        if((*entry)->next )
         {
             (*entry)->next->prev = (*entry)->prev;
         }
+        else
+        {
+            this->tail = (*entry)->prev;
+        }
+        
         data = (*entry)->data;
+
+        struct list_node *free_entry = *entry;
+
         *entry = (*entry)->next;
-        free(entry);
+
+        free(free_entry);
     }
     else
     {
+        x = this->size - x;
+        x--;
+
         entry = &this->tail;
-        while((*entry)->prev && (x--) >= 0)
+        while((*entry)->prev && --x >= 0)
         {
             entry = &(*entry)->prev;
         }
