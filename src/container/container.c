@@ -176,7 +176,8 @@ void *list_at(struct list *this, int x)
 
     struct list_node *entry;
     //walk forward if x < size/2
-    if(x < this->size/2)
+    //if(x < this->size/2)
+    if(1)
     {
         entry = this->head;
         while(entry->next && --x >= 0)
@@ -247,9 +248,18 @@ void *list_remove_at(struct list *this, int x)
         {
             (*entry)->prev->next = (*entry)->next;
         }
+        else
+        {
+            this->head = (*entry)->next;
+        }
+
         data = (*entry)->data;
+
+        struct list_node *free_entry = *entry;
+
         *entry = (*entry)->prev;
-        free(entry);
+
+        free(free_entry);
     }
     this->size--;
 
