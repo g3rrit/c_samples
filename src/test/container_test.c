@@ -6,7 +6,7 @@
 
 #include "snow.h"
 
-void *m_for_each(struct list *_list, int data)
+void *m_for_each(int data, void *ref, struct list *_list)
 {
     if(data == 5)
     {
@@ -15,7 +15,7 @@ void *m_for_each(struct list *_list, int data)
     return 0;
 }
 
-void *m_for_each_remove(struct list *_list, int data)
+void *m_for_each_remove(int data, void *ref, struct list *_list)
 {
     if(data == 3)
     {
@@ -24,7 +24,7 @@ void *m_for_each_remove(struct list *_list, int data)
     return 0;
 }
 
-void *map_m_for_each(struct map *_map, int data)
+void *map_m_for_each(int data, void *ref, struct list *_list)
 {
     if(data == 5)
     {
@@ -33,7 +33,7 @@ void *map_m_for_each(struct map *_map, int data)
     return 0;
 }
 
-void *map_m_for_each_remove(struct map *_map, int data)
+void *map_m_for_each_remove(int data, void *ref, struct map *_map)
 {
     if(data == 3)
     {
@@ -185,8 +185,8 @@ describe(container,
                 asserteq(mlist.size, i+1);
                 asserteq(list_at(&mlist,9) , i);
             }
-            asserteq(list_for_each(&mlist, &m_for_each), 5);
-            asserteq(list_for_each(&mlist, &m_for_each_remove), 0);
+            asserteq(list_for_each(&mlist, &m_for_each, 0), 5);
+            asserteq(list_for_each(&mlist, &m_for_each_remove, 0), 0);
             asserteq(mlist.size, 9);
             assert(mlist.head);
             assert(mlist.tail);
@@ -367,8 +367,8 @@ describe(container,
                 asserteq(mmap.size, i+1);
                 asserteq(map_at(&mmap,9) , i);
             }
-            asserteq(map_for_each(&mmap, &map_m_for_each), 5);
-            asserteq(map_for_each(&mmap, &map_m_for_each_remove), 0);
+            asserteq(map_for_each(&mmap, &map_m_for_each, 0), 5);
+            asserteq(map_for_each(&mmap, &map_m_for_each_remove, 0), 0);
             asserteq(mmap.size, 9);
             assert(mmap.head);
             assert(mmap.tail);

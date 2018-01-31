@@ -36,7 +36,7 @@ void *list_remove_at(struct list *this, int x);
 
 //if fun returns something other than 0 stop
 //returns 0 if all objects where iterated
-void *list_for_each(struct list *this, void *(*fun)(struct list *_list, void *data));
+void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list *_list), void *ref);
 
 //------------------------- 
 
@@ -76,7 +76,7 @@ void *map_at(struct map *this, int x);
 void *map_remove(struct map *this, char *key);
 void *map_remove_at(struct map *this, int x);
 
-void *map_for_each(struct map *this, void *(*fun)(struct map *_map, void *data));
+void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map *_map), void *ref);
 
 #endif
 
@@ -345,13 +345,16 @@ void *list_remove_at(struct list *this, int x)
     return data;
 }
 
-void *list_for_each(struct list *this, void *(*fun)(struct list *_list, void *data))
+void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list *_list), void *ref)
 {
+    if(!(this->head))
+        return 0;
+
     struct list_node **entry = &(this->head);
 
     void *retval = 0;
 
-    while(!(retval = fun(this, (*entry)->data)) && (*entry)->next)
+    while(!(retval = fun((*entry)->data, ref, this)) && (*entry)->next)
     {
         entry = &(*entry)->next;
     }
@@ -527,12 +530,16 @@ void *map_get(struct map *this, char *key)
 
     struct map_node *entry;
     entry = this->head;
-    while(entry->next && strncmp(entry->key, key, strlen(key)))
+    int rescomp = 1;
+    while(entry->next && (rescomp = strncmp(entry->key, key, strlen(key))))
     {
         entry = entry->next;     
     }
 
-    return entry->data;
+    if(!rescomp)
+        return entry->data;
+    else
+        return 0;
 }
 
 void *map_at(struct map *this, int x)
@@ -579,35 +586,43 @@ void *map_remove(struct map *this, char *key)
 
     struct map_node **entry;
     entry = &this->head;
-    while((*entry)->next && strncmp((*entry)->key, key, strlen(key)))
+    int rescmp = 1;
+    while((*entry)->next && (rescmp = strncmp((*entry)->key, key, strlen(key))))
     {
         entry = &(*entry)->next;
     }
-    if((*entry)->next )
+    if(!rescmp)
     {
-        (*entry)->next->prev = (*entry)->prev;
+        if((*entry)->next )
+        {
+            (*entry)->next->prev = (*entry)->prev;
+        }
+        else
+        {
+            this->tail = (*entry)->prev;
+        }
+
+        data = (*entry)->data;
+
+        struct map_node *free_entry = *entry;
+
+        *entry = (*entry)->next;
+
+        free(free_entry);
+        this->size--;
+
+        if(!this->size)
+        {
+            this->head = 0;
+            this->tail = 0;
+        }
+
+        return data;
     }
     else
     {
-        this->tail = (*entry)->prev;
+        return 0;
     }
-    
-    data = (*entry)->data;
-
-    struct map_node *free_entry = *entry;
-
-    *entry = (*entry)->next;
-
-    free(free_entry);
-    this->size--;
-
-    if(!this->size)
-    {
-        this->head = 0;
-        this->tail = 0;
-    }
-    
-    return data;
 
 }
 
@@ -687,13 +702,16 @@ void *map_remove_at(struct map *this, int x)
 
 }
 
-void *map_for_each(struct map *this, void *(*fun)(struct map *_map, void *data))
+void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map *_map), void *ref)
 {
+    if(!(this->head))
+        return 0;
+
     struct map_node **entry = &(this->head);
 
     void *retval = 0;
 
-    while(!(retval = fun(this, (*entry)->data)) && (*entry)->next)
+    while(!(retval = fun((*entry)->data, ref, this)) && (*entry)->next)
     {
         entry = &(*entry)->next;
     }
