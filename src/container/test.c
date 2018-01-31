@@ -6,6 +6,46 @@
 
 #include "snow.h"
 
+void *m_for_each(struct list *_list, int data)
+{
+    if(data == 5)
+    {
+        return 5;
+    }
+    return 0;
+}
+
+void *m_for_each_remove(struct list *_list, int data)
+{
+    if(data == 3)
+    {
+        list_remove_at(_list, 3);
+    }
+    return 0;
+}
+
+void *map_m_for_each(struct map *_map, int data)
+{
+    if(data == 5)
+    {
+        return 5;
+    }
+    return 0;
+}
+
+void *map_m_for_each_remove(struct map *_map, int data)
+{
+    if(data == 3)
+    {
+        map_remove_at(_map, 3);
+    }
+    return 0;
+}
+
+
+
+
+
 describe(container, 
 {    
     subdesc(list, 
@@ -134,6 +174,24 @@ describe(container,
             assert(!mlist.head);
             assert(!mlist.tail);
         });
+
+        it("for_each",
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                list_push_back(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(list_at(&mlist,9) , i);
+            }
+            asserteq(list_for_each(&mlist, &m_for_each), 5);
+            asserteq(list_for_each(&mlist, &m_for_each_remove), 0);
+            asserteq(mlist.size, 9);
+            assert(mlist.head);
+            assert(mlist.tail);
+        });
+
     });
 
     subdesc(map, 
@@ -298,6 +356,24 @@ describe(container,
             assert(!mmap.tail);
             free(key);
         });
+
+        it("for_each",
+        {
+            struct map mmap;
+            map_init(&mmap);
+            for(int i = 0; i < 10; i++)
+            {
+                map_push_back(&mmap, "key", i);
+                asserteq(mmap.size, i+1);
+                asserteq(map_at(&mmap,9) , i);
+            }
+            asserteq(map_for_each(&mmap, &map_m_for_each), 5);
+            asserteq(map_for_each(&mmap, &map_m_for_each_remove), 0);
+            asserteq(mmap.size, 9);
+            assert(mmap.head);
+            assert(mmap.tail);
+        });
+
     });
 
 

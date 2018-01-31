@@ -34,6 +34,10 @@ void *list_pop_back(struct list *this);
 void *list_at(struct list *this, int x);
 void *list_remove_at(struct list *this, int x);
 
+//if fun returns something other than 0 stop
+//returns 0 if all objects where iterated
+void *list_for_each(struct list *this, void *(*fun)(struct list *_list, void *data));
+
 //------------------------- 
 
 //---------- MAP ---------- 
@@ -72,6 +76,7 @@ void *map_at(struct map *this, int x);
 void *map_remove(struct map *this, char *key);
 void *map_remove_at(struct map *this, int x);
 
+void *map_for_each(struct map *this, void *(*fun)(struct map *_map, void *data));
 
 #endif
 
@@ -338,6 +343,19 @@ void *list_remove_at(struct list *this, int x)
     }
     
     return data;
+}
+
+void *list_for_each(struct list *this, void *(*fun)(struct list *_list, void *data))
+{
+    struct list_node **entry = &(this->head);
+
+    void *retval = 0;
+
+    while(!(retval = fun(this, (*entry)->data)) && (*entry)->next)
+    {
+        entry = &(*entry)->next;
+    }
+    return retval;
 }
 
 //------------------------- 
@@ -669,6 +687,18 @@ void *map_remove_at(struct map *this, int x)
 
 }
 
+void *map_for_each(struct map *this, void *(*fun)(struct map *_map, void *data))
+{
+    struct map_node **entry = &(this->head);
+
+    void *retval = 0;
+
+    while(!(retval = fun(this, (*entry)->data)) && (*entry)->next)
+    {
+        entry = &(*entry)->next;
+    }
+    return retval;
+}
 
 //------------------------- 
 
