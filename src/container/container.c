@@ -613,7 +613,7 @@ void *map_remove(struct map *this, char *key)
     struct map_node **entry;
     entry = &this->head;
     int rescmp = 1;
-    while((*entry)->next && (rescmp = strncmp((*entry)->key, key, strlen(key))))
+    while((rescmp = strncmp((*entry)->key, key, strlen(key))) && (*entry)->next)
     {
         entry = &(*entry)->next;
     }

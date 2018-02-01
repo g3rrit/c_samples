@@ -98,13 +98,65 @@ describe(event,
             cid[3]++;
             event_remove(&mevent, cid);
             cid[0]++;
-            printf("here\n");
-            asserteq(mevent.event_map.size, 9-i);
+            cid[3] = '1';
+            asserteq(mevent.event_map.size, 8-i);
         }
 
         event_clear(&mevent);
 
-        asserteq(&mevent.event_map.size, 0);
+        asserteq(mevent.event_map.size, 0);
+    });
+
+    it("clear",
+    {
+        struct event mevent;
+        event_init(&mevent);
+
+        char *ckey = malloc(5);
+        strcpy(ckey,"1key");
+        char *cid = malloc(5);
+        strcpy(cid, "1id1");
+        char *cref1 = "ref1";
+        char *cref2 = "ref2";
+        char *cref3 = "ref3";
+        char *cref4 = "ref4";
+        for(int i = 0; i < 9; i++)
+        {
+            event_add(&mevent, ckey, cid, &print_stuff, cref1);
+            cid[3]++;
+            event_add(&mevent, ckey, cid, &print_stuff, cref2);
+            cid[3]++;
+            event_add(&mevent, ckey, cid, &print_stuff, cref3);
+            cid[3]++;
+            event_add(&mevent, ckey, cid, &print_stuff, cref4);
+
+            ckey[0] += 1;
+            cid[0] += 1;
+            cid[3] = '1';
+        }
+
+        asserteq(mevent.event_map.size, 9);
+        event_clear(&mevent);         
+        asserteq(mevent.event_map.size, 0);
+
+        for(int i = 0; i < 9; i++)
+        {
+            event_add(&mevent, ckey, cid, &print_stuff, cref1);
+            cid[3]++;
+            event_add(&mevent, ckey, cid, &print_stuff, cref2);
+            cid[3]++;
+            event_add(&mevent, ckey, cid, &print_stuff, cref3);
+            cid[3]++;
+            event_add(&mevent, ckey, cid, &print_stuff, cref4);
+
+            ckey[0] += 1;
+            cid[0] += 1;
+            cid[3] = '1';
+        }
+
+        asserteq(mevent.event_map.size, 9);
+        event_clear(&mevent);         
+        asserteq(mevent.event_map.size, 0);
     });
 });
 
