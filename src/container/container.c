@@ -20,6 +20,14 @@ struct list
     int size;
 };
 
+struct list_info
+{
+    struct list *this;
+    struct list_node *entry;
+    int pos;
+    int size;
+};
+
 void list_init(struct list *this);
 
 void list_delete(struct list *this);
@@ -36,7 +44,7 @@ void *list_remove_at(struct list *this, int x);
 
 //if fun returns something other than 0 stop
 //returns 0 if all objects where iterated
-void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list *_list), void *ref);
+void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list_info *info), void *ref);
 
 //------------------------- 
 
@@ -59,6 +67,15 @@ struct map
     int size;
 };
 
+struct map_info
+{
+    struct map *this;
+    struct map_node *entry;
+    char *key;
+    int pos;
+    int size;
+};
+
 void map_init(struct map *this);
 
 void map_delete(struct map *this);
@@ -76,7 +93,7 @@ void *map_at(struct map *this, int x);
 void *map_remove(struct map *this, char *key);
 void *map_remove_at(struct map *this, int x);
 
-void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map *_map), void *ref);
+void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map_info *info), void *ref);
 
 #endif
 
@@ -345,7 +362,7 @@ void *list_remove_at(struct list *this, int x)
     return data;
 }
 
-void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list *_list), void *ref)
+void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list_info *info), void *ref)
 {
     if(!(this->head))
         return 0;
@@ -354,9 +371,18 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
 
     void *retval = 0;
 
-    while(!(retval = fun((*entry)->data, ref, this)) && (*entry)->next)
+    struct list_info info;
+    info.this = this;
+    info.entry = *entry;
+    info.pos = 0;
+    info.size = this->size;
+
+    while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
     {
         entry = &(*entry)->next;
+
+        info.entry = *entry;
+        info.pos++;
     }
     return retval;
 }
@@ -531,7 +557,7 @@ void *map_get(struct map *this, char *key)
     struct map_node *entry;
     entry = this->head;
     int rescomp = 1;
-    while(entry->next && (rescomp = strncmp(entry->key, key, strlen(key))))
+    while((rescomp = strncmp(entry->key, key, strlen(key))) && entry->next)
     {
         entry = entry->next;     
     }
@@ -702,7 +728,7 @@ void *map_remove_at(struct map *this, int x)
 
 }
 
-void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map *_map), void *ref)
+void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map_info *info), void *ref)
 {
     if(!(this->head))
         return 0;
@@ -711,9 +737,20 @@ void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct 
 
     void *retval = 0;
 
-    while(!(retval = fun((*entry)->data, ref, this)) && (*entry)->next)
+    struct map_info info;
+    info.this = this;
+    info.entry = *entry;
+    info.pos = 0;
+    info.size = this->size;
+    info.key = (*entry)->key;
+
+    while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
     {
         entry = &(*entry)->next;
+
+        info.entry = *entry;
+        info.pos++;
+        info.key = (*entry)->key;
     }
     return retval;
 }

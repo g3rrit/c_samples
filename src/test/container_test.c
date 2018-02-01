@@ -6,7 +6,7 @@
 
 #include "snow.h"
 
-void *m_for_each(int data, void *ref, struct list *_list)
+void *m_for_each(int data, void *ref, struct list_info *info)
 {
     if(data == 5)
     {
@@ -15,16 +15,16 @@ void *m_for_each(int data, void *ref, struct list *_list)
     return 0;
 }
 
-void *m_for_each_remove(int data, void *ref, struct list *_list)
+void *m_for_each_remove(int data, void *ref, struct list_info *info)
 {
     if(data == 3)
     {
-        list_remove_at(_list, 3);
+        list_remove_at(info->this, 3);
     }
     return 0;
 }
 
-void *map_m_for_each(int data, void *ref, struct list *_list)
+void *map_m_for_each(int data, void *ref, struct map_info *info)
 {
     if(data == 5)
     {
@@ -33,11 +33,11 @@ void *map_m_for_each(int data, void *ref, struct list *_list)
     return 0;
 }
 
-void *map_m_for_each_remove(int data, void *ref, struct map *_map)
+void *map_m_for_each_remove(int data, void *ref, struct map_info *info)
 {
     if(data == 3)
     {
-        map_remove_at(_map, 3);
+        map_remove_at(info->this, 3);
     }
     return 0;
 }

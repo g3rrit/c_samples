@@ -32,9 +32,9 @@ void event_clear(struct event *this);
 //src
 #ifndef EVENT_C
 
-void *event_search_remove(struct map *_map, char *id, struct map *map_data);
-void *event_for_each_dispatch(struct event_data *t_event_data, void *data, struct map *_map);
-void *event_for_each_clear(struct map *_map, void *emp, struct map *map_data);
+void *event_search_remove(struct map *_map, char *id, struct map_info *info);
+void *event_for_each_dispatch(struct event_data *t_event_data, void *data, struct map_info *info);
+void *event_for_each_clear(struct map *_map, void *emp, struct map_info *info);
 
 void event_init(struct event *this)
 {
@@ -82,20 +82,25 @@ void event_clear(struct event *this)
 
 
 //foreach functions
-void *event_search_remove(struct map *_map, char *id, struct map *map_data)
+void *event_search_remove(struct map *_map, char *id, struct map_info *info)
 {
     struct event_data *t_event_data = map_remove(_map, id);
     if(t_event_data)
         free(t_event_data);
+    if(!_map->size)
+    {
+        map_remove(info->this, info->key);
+        free(_map);
+    }
     return 0;
 }
 
-void *event_for_each_dispatch(struct event_data *t_event_data, void *data, struct map *_map)
+void *event_for_each_dispatch(struct event_data *t_event_data, void *data, struct map_info *info)
 {
     return t_event_data->fun(t_event_data->ref, data);
 }
 
-void *event_for_each_clear(struct map *_map, void *emp, struct map *map_data)
+void *event_for_each_clear(struct map *_map, void *emp, struct map_info *info)
 {
     map_delete_all(_map);
     return 0;
