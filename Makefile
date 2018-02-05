@@ -38,4 +38,12 @@ SRCFM_FFT := $(SRC_DIR)/fft/main.c
 
 fft:
 	$(CC) $(SRCF_FFT) $(SRCFM_FFT) -lm -o $(BUILD_DIR)/$(TARGET)
+
+#lineareq:
+SRCF_LIN := $(SRC_DIR)/lineareq/lineareq.c
+SRCFM_LIN := $(SRC_DIR)/lineareq/main.c
+
+lineareq:
+	$(CC) $(SRCF_LIN) $(SRCFM_LIN) -o $(BUILD_DIR)/$(TARGET)
 	$(BUILD_DIR)/$(TARGET)
+
