@@ -11,10 +11,10 @@ int main()
     FILE *gxfile = fopen("gx.txt", "w");
     FILE *fxafile = fopen("fxa.txt", "w");
 
-    double fx[500];
-    double gx[500];
+    double fx[2000];
+    double gx[2000];
     int count = 0;
-    for(double i = 0;  i < 5; i += 0.01f)
+    for(double i = 0;  i < 20; i += 0.01f)
     {
         fx[count] = f_sin(i);
         printf("sawtooth(%f) = %f\n", i, f_sawtooth(i));
@@ -22,18 +22,18 @@ int main()
         count++;
     }
 
-    f_transform(fx, gx,  500, &f_sin);
+    f_transform(fx, gx,  2000, &f_sin);
 
     printf("after transform\n");
 
-    for(int i = 0; i < 500; i++)
+    for(int i = 0; i < 2000; i++)
         fprintf(gxfile, "%f\n", gx[i]);
 
-    f_transform_inverse(gx, fx,  500, &f_sin);
+    f_transform_inverse(gx, fx,  2000, &f_sin);
 
     printf("after transform_inverse\n");
 
-    for(int i = 0; i < 500; i++)
+    for(int i = 0; i < 2000; i++)
         fprintf(fxafile, "%f\n", fx[i]);
 
     fclose(fxbfile);
