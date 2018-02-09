@@ -2,7 +2,7 @@
 #ifndef PCM_H
 #define PCM_H
 
-int pcm_write(char *fname, void *data, int size, int nmemb);
+int pcm_write_s16_le(char *fname, short *data, int size);
 
 #endif
 
@@ -11,21 +11,23 @@ int pcm_write(char *fname, void *data, int size, int nmemb);
 
 #include <stdio.h>
 
-int pcm_write(char *fname, void *data, int size, int nmemb)
+int pcm_write_s16_le(char *fname, short *data, int size)
 {
     //int fwrite(const void *ptr, int size, int nmemb, FILE *stream)
     FILE *file = fopen(fname, "wb");
 
-    int retval = 0;
-
-    if(fwrite(data, size, nmemb, file) == nmemb)
-        retval = 1;
-    else
-        retval = 0;
+    for(int i = 0; i < size; i++)
+    {
+        unsigned char c;
+        c = (unsigned)data[i] % 256;
+        fwrite(&c, 1, 1, file);
+        c = (unsigned)data[i] / 256 % 256;
+        fwrite(&c, 1, 1, file);
+    }
 
     fclose(file);
 
-    return retval;
+    return 1;
 }
 
 #endif

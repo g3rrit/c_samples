@@ -25,20 +25,39 @@ int main()
     pcm_write("audtest.pcm", varr, 2, 16000);
     */
 
+    short sarr[8000];
 
     FILE *file = fopen("audtest.pcm", "wb");
 
     double t;
+    int count = 0;
     for(t = 0; t < 1; t += 1./8000)
     {
-        double sample = 15000 * sin(2 * M_PI * 1000 * t);
+        /*double sample = 5000 * sin(2 * M_PI * 1000 * t);
+        sample += 5000 * sin(2 * M_PI * 500 * t);
+        */
+        double sample = 0;
+
+        double freq = 1;
+        for(int i = 1; i <= 20; i++)
+        {
+            sample += 1500 * sin(2 * M_PI * freq * t);
+            freq *= 2;
+        }
         short s16 = (short)sample;
+
+        sarr[count] = s16;
+        count++;
+        /*
         unsigned char c;
         c = (unsigned)s16 % 256;
         fwrite(&c, 1, 1, file);
         c = (unsigned)s16 / 256 % 256;
         fwrite(&c, 1, 1, file);
+        */
     }
+
+    pcm_write_s16_le("audtest2.pcm", sarr, 8000);
 
     //Encoding:     Signed 16-bit PCM
     //Byte Order:   Little-endian
