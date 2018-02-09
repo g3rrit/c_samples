@@ -2,10 +2,6 @@
 #ifndef TRANDFORM_H
 #define TRANSFORM_H
 
-double f_sin(double x);
-
-double f_sawtooth(double x);
-
 //fun should oscelate between -1 and 1
 //fun should have an wavelength of 1
 void f_transform(double *input, double *output, int size, double (*fun)(double x));
@@ -22,17 +18,6 @@ void f_transform_inverse(double *input, double *output, int size, double (*fun)(
 #ifndef M_PI
 #define M_PI 3.14159265359
 #endif
-
-inline double f_sin(double x)
-{
-    return sin(2 * M_PI * x);
-}
-
-inline double f_sawtooth(double x)
-{
-    double intpart;
-    return 2 * modf(x, &intpart) - 1;
-}
 
 void f_transform(double *input, double *output, int size, double (*fun)(double x))
 {
