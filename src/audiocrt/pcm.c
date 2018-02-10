@@ -37,6 +37,8 @@ int pcm_write_s16_le(char *fname, short *data, int size)
     return 1;
 }
 
+//note:     When samplerate is to low res array is gonna be messed up
+//          because the function is not gonna go to the maximum
 int pcm_create_tone_s16(short **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x))
 {
     int malsize = 2 * samplerate * duration;
@@ -44,9 +46,10 @@ int pcm_create_tone_s16(short **res, int frequenzy, int samplerate, double durat
 
     int i = 0;
     double t = 0;
-    for(t = 0; t < duration; t += 1./samplerate)
+    for(t = 0; t < duration; t += 1./((double)samplerate))
     {
         (*res)[i] = amplitude * fun(t * frequenzy);
+
         i++;
     }
 
