@@ -26,41 +26,42 @@ int main()
     }
     fclose(tfile);
 
-    short *sarr;
+    double *sarr;
     /*
-    pcm_create_tone_s16(&sarr, 800, 32000, 1 , 15000, &f_sin);
+    pcm_create_tone(&sarr, 800, 32000, 1 , 15000, &f_sin);
     pcm_write_s16_le(fname, sarr, 32000);
     free(sarr);
     fname[0]++;
     */
 
-    pcm_create_tone_s16(&sarr, 800, 8000, 1 , 15000, &f_sawtooth);
+    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_sawtooth);
     pcm_write_s16_le(fname, sarr, 8000);
+    wav_write_s16_le("twav.wav", sarr, 8000, 8000);
     free(sarr);
     fname[0]++;
 
     /*
-    pcm_create_tone_s16(&sarr, 800, 8000, 1 , 15000, &f_exp);
+    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_exp);
     pcm_write_s16_le(fname, sarr, 8000);
     free(sarr);
     fname[0]++;
 
-    pcm_create_tone_s16(&sarr, 800, 8000, 1 , 15000, &f_pow2);
+    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_pow2);
     pcm_write_s16_le(fname, sarr, 8000);
     free(sarr);
     fname[0]++;
 
-    pcm_create_tone_s16(&sarr, 800, 8000, 1 , 15000, &f_sqrt);
+    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_sqrt);
     pcm_write_s16_le(fname, sarr, 8000);
     free(sarr);
     fname[0]++;
 
-    pcm_create_tone_s16(&sarr, 800, 8000, 1 , 15000, &f_pulse);
+    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_pulse);
     pcm_write_s16_le(fname, sarr, 8000);
     free(sarr);
     fname[0]++;
 
-    pcm_create_tone_s16(&sarr, 800, 8000, 1 , 15000, &f_triangle);
+    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_triangle);
     pcm_write_s16_le(fname, sarr, 8000);
     free(sarr);
     */

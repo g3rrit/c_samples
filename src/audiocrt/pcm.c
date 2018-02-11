@@ -2,9 +2,18 @@
 #ifndef PCM_H
 #define PCM_H
 
-int pcm_write_s16_le(char *fname, short *data, int size);
+int pcm_write_s16_le(char *fname, double *data, int size);
 
-int pcm_create_tone_s16(short **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x));
+int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x));
+
+int wav_write_s16_le(char *fname, double *data, int size, int samplerate);
+
+//---------- endianess ---------- 
+int is_big_endian();
+void reverse_endianness(const long long int size, void *value);
+void to_big_endian(const long long int size, void *value);
+void to_little_endian(const long long int size, void *value);
+
 
 #endif
 
@@ -18,17 +27,18 @@ int pcm_create_tone_s16(short **res, int frequenzy, int samplerate, double durat
 #include <stdio.h>
 #include <stdlib.h>
 
-int pcm_write_s16_le(char *fname, short *data, int size)
+int pcm_write_s16_le(char *fname, double *data, int size)
 {
     //int fwrite(const void *ptr, int size, int nmemb, FILE *stream)
     FILE *file = fopen(fname, "wb");
 
     for(int i = 0; i < size; i++)
     {
+        short s16 = data[i];
         unsigned char c;
-        c = (unsigned)data[i] % 256;
+        c = (unsigned)s16 % 256;
         fwrite(&c, 1, 1, file);
-        c = (unsigned)data[i] / 256 % 256;
+        c = (unsigned)s16 / 256 % 256;
         fwrite(&c, 1, 1, file);
     }
 
@@ -37,11 +47,108 @@ int pcm_write_s16_le(char *fname, short *data, int size)
     return 1;
 }
 
+int wav_write_s16_le(char *fname, double *data, int size, int samplerate)
+{
+    struct 
+    {
+        //riff wave header
+        char chunk_id[4];
+        int chunk_size;
+        char format[4];
+
+        //format subchunk
+        char sub_chunk1_id[4];
+        int sub_chunk1_size;
+        short int audio_format;
+        short int num_channels;
+        int samplerate;
+        int byterate;
+        short int blockalign;
+        short int bits_per_sample;
+        //short int extra_param_size;
+        
+        //data subchunk
+        char sub_chunk2_id[4];
+        int sub_chunk2_size; 
+    } wave_header;
+
+    //fill header
+    //riff wave header
+    wave_header.chunk_id[0] = 'R';
+    wave_header.chunk_id[1] = 'I';
+    wave_header.chunk_id[2] = 'F';
+    wave_header.chunk_id[3] = 'F';
+    wave_header.format[0] = 'W';
+    wave_header.format[1] = 'A';
+    wave_header.format[2] = 'V';
+    wave_header.format[3] = 'E';
+
+    //format subchunks
+    wave_header.sub_chunk1_id[0] = 'f';
+    wave_header.sub_chunk1_id[1] = 'm';
+    wave_header.sub_chunk1_id[2] = 't';
+    wave_header.sub_chunk1_id[3] = ' ';
+    wave_header.audio_format = 1;           //1 for pcm
+    wave_header.num_channels = 1;           //mono
+    wave_header.samplerate = samplerate;
+    wave_header.bits_per_sample = 16;       //16 bits 
+    
+    wave_header.byterate = wave_header.samplerate * wave_header.num_channels * wave_header.bits_per_sample / 8;
+    wave_header.blockalign = wave_header.num_channels * wave_header.bits_per_sample/8;
+
+    //data subchunks
+    wave_header.sub_chunk2_id[0] = 'd';
+    wave_header.sub_chunk2_id[1] = 'a';
+    wave_header.sub_chunk2_id[2] = 't';
+    wave_header.sub_chunk2_id[3] = 'a';
+
+    wave_header.chunk_size = 4+8+16+8+0;
+    wave_header.sub_chunk1_size = 16;
+    wave_header.sub_chunk2_size = 0;
+
+    //set duration
+    long long int total_bytes = (long long int) wave_header.num_channels * size;
+    wave_header.chunk_size = 4+8+16+8+total_bytes;
+    wave_header.sub_chunk2_size = total_bytes;
+
+    //convert header to little endian
+    to_little_endian(sizeof(int), &(wave_header.chunk_size));
+    to_little_endian(sizeof(int), &(wave_header.sub_chunk1_size));
+    to_little_endian(sizeof(short int), &(wave_header.audio_format));
+    to_little_endian(sizeof(short int), &(wave_header.num_channels));
+    to_little_endian(sizeof(int), &(wave_header.samplerate));
+    to_little_endian(sizeof(int), &(wave_header.byterate));
+    to_little_endian(sizeof(short int), &(wave_header.blockalign));
+    to_little_endian(sizeof(short int), &(wave_header.bits_per_sample));
+    to_little_endian(sizeof(int), &(wave_header.sub_chunk2_size));
+
+    //write to file
+    FILE *file = fopen(fname, "wb");
+
+    fwrite(&wave_header, sizeof(wave_header), 1, file);
+
+    //16bit
+    for(int i = 0; i < size; i++)
+    {
+        short s16 = data[i];
+        unsigned char c;
+        c = (unsigned)s16 % 256;
+        fwrite(&c, 1, 1, file);
+        c = (unsigned)s16 / 256 % 256;
+        fwrite(&c, 1, 1, file);
+    }
+
+    fclose(file);
+
+    return 1;
+}
+
+
 //note:     When samplerate is to low res array is gonna be messed up
 //          because the function is not gonna go to the maximum
-int pcm_create_tone_s16(short **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x))
+int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x))
 {
-    int malsize = 2 * samplerate * duration;
+    int malsize = sizeof(double) * samplerate * duration;
     *res = malloc(malsize);
 
     int i = 0;
@@ -55,5 +162,40 @@ int pcm_create_tone_s16(short **res, int frequenzy, int samplerate, double durat
 
     return samplerate * duration;
 }
+
+
+//---------- endianess ---------- 
+
+int is_big_endian()
+{
+    int test = 1;
+    char *p = (char*)&test;
+    return p[0] == 0;
+}
+
+void reverse_endianness(const long long int size, void *value)
+{
+    int i;
+    char result[32];
+    for(i = 0; i < size; i++)
+        result[i] = ((char*)value)[size-i-1];
+    for(i = 0; i < size; i++)
+        ((char*)value)[i] = result[i];
+}
+
+void to_big_endian(const long long int size, void *value)
+{
+    char needsfix = !( (1 && is_big_endian()) || (0 && !is_big_endian()) );
+    if(needsfix)
+        reverse_endianness(size, value);
+}
+
+void to_little_endian(const long long int size, void *value)
+{
+    char needsfix = !( (0 && is_big_endian()) || (1 && !is_big_endian()) );
+    if(needsfix)
+        reverse_endianness(size, value);
+}
+
 
 #endif
