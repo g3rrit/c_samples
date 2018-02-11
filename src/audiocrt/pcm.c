@@ -2,9 +2,17 @@
 #ifndef PCM_H
 #define PCM_H
 
+int pcm_write_txt(char *fname, double *data, int size);
+
 int pcm_write_s16_le(char *fname, double *data, int size);
 
-int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x));
+int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x));
+
+int pcm_create_frequenzy_tone(double **res, double *input, int isize, int samplerate, double duration, double (*fun)(double x));
+
+void pcm_scale_const(double *res, int size, double amplitude);
+
+void pcm_scale(double *data, int size, double (*fun)(double x));
 
 int wav_write_s16_le(char *fname, double *data, int size, int samplerate);
 
@@ -26,6 +34,18 @@ void to_little_endian(const long long int size, void *value);
 
 #include <stdio.h>
 #include <stdlib.h>
+
+int pcm_write_txt(char *fname, double *data, int size)
+{
+    FILE *file = fopen(fname, "w");
+
+    for(int i = 0; i < size; i++)
+        fprintf(file, "%f\n", data[i]);
+
+    fclose(file);
+
+    return 1;
+}
 
 int pcm_write_s16_le(char *fname, double *data, int size)
 {
@@ -107,7 +127,8 @@ int wav_write_s16_le(char *fname, double *data, int size, int samplerate)
     wave_header.sub_chunk2_size = 0;
 
     //set duration
-    long long int total_bytes = (long long int) wave_header.num_channels * size;
+    //note:     not quite sure if this is right
+    long long int total_bytes = (long long int) wave_header.num_channels * size * wave_header.bits_per_sample/8;
     wave_header.chunk_size = 4+8+16+8+total_bytes;
     wave_header.sub_chunk2_size = total_bytes;
 
@@ -146,7 +167,7 @@ int wav_write_s16_le(char *fname, double *data, int size, int samplerate)
 
 //note:     When samplerate is to low res array is gonna be messed up
 //          because the function is not gonna go to the maximum
-int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double amplitude, double (*fun)(double x))
+int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x))
 {
     int malsize = sizeof(double) * samplerate * duration;
     *res = malloc(malsize);
@@ -155,12 +176,57 @@ int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration
     double t = 0;
     for(t = 0; t < duration; t += 1./((double)samplerate))
     {
-        (*res)[i] = amplitude * fun(t * frequenzy);
-
+        (*res)[i] = fun(t * frequenzy);
         i++;
     }
 
     return samplerate * duration;
+}
+
+int pcm_create_frequenzy_tone(double **res, double *input, int isize, int samplerate, double duration, double (*fun)(double x))
+{
+    *res = malloc(sizeof(double) * samplerate * duration);
+
+    double sum_of_all = 0;
+    for(int i = 0; i < isize; i++)
+        sum_of_all += input[i];
+
+    int count = 1;
+    for(double t = 0; t < duration; t+= 1./(double) samplerate)
+    {
+        printf("sound(%i - %i)\n", count, samplerate * duration);
+
+        double fx = input[0];
+
+        for(int i = 0; i < isize; i++)
+            fx += (input[i] * fun(t * i))/sum_of_all;
+
+        (*res)[count] = fx;
+
+        count++;
+    }
+
+    return samplerate * duration;
+}
+
+void pcm_scale_const(double *res, int size, double amplitude)
+{
+    for(int i = 0; i < size; i++)
+        res[i] *= amplitude;
+}
+
+void pcm_scale(double *data, int size, double (*fun)(double x))
+{
+    double biggest_val = 0;
+    for(int i = 0; i < size; i++)
+    {
+        data[i] *= fun(((double) i)/((double)size));
+
+        if(data[i] > biggest_val)
+            biggest_val = data[i];
+    }
+
+    pcm_scale_const(data, size, 1./biggest_val);
 }
 
 
