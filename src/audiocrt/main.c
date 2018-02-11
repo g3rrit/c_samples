@@ -32,8 +32,8 @@ int main()
 
     double *sarr;
     /*
-    pcm_create_tone(&sarr, 800, 32000, 1 , 15000, &f_sin);
-    pcm_write_s16_le(fname, sarr, 32000);
+    pcm_create_tone(&sarr, 800, 16000, 1 , 15000, &f_sin);
+    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
     free(sarr);
     fname[0]++;
     */
@@ -66,27 +66,27 @@ int main()
 
     /*
     pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_exp);
-    pcm_write_s16_le(fname, sarr, 8000);
+    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
     free(sarr);
     fname[0]++;
 
     pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_pow2);
-    pcm_write_s16_le(fname, sarr, 8000);
+    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
     free(sarr);
     fname[0]++;
 
     pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_sqrt);
-    pcm_write_s16_le(fname, sarr, 8000);
+    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
     free(sarr);
     fname[0]++;
 
     pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_pulse);
-    pcm_write_s16_le(fname, sarr, 8000);
+    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
     free(sarr);
     fname[0]++;
 
     pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_triangle);
-    pcm_write_s16_le(fname, sarr, 8000);
+    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
     free(sarr);
     */
 
