@@ -20,6 +20,8 @@ const char *kernel_source =
 "   v[id] = 2 * v[id];                              \n"\
 "}                                                  \n";
 
+void print_cl_error(cl_int err, char *err_txt);
+
 int main(int argc, char **argv)
 {
     unsigned int n = 128;
@@ -43,14 +45,16 @@ int main(int argc, char **argv)
 
     //setup openCL
     cl_int err;
-#define printerr(errmsg) if(err != CL_SUCCESS) printf("error: --> %s\n", errmsg);
+#define printerr(errmsg) if(err != CL_SUCCESS) print_cl_error(err, errmsg)
     
     err = clGetPlatformIDs(1, &platform, 0);
     printerr("platform ids");
     err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_id, 0); 
     printerr("device ids");
     context = clCreateContext(0, 1, &device_id, 0, 0, &err);
+    printerr("create context");
     queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
+    printerr("create command queue");
     program = clCreateProgramWithSource(context, 1, (const char **) &kernel_source, 0, &err);
 
     //build the program executable
@@ -69,6 +73,7 @@ int main(int argc, char **argv)
     }
 
     k_mult = clCreateKernel(program, "mult", &err);
+    printerr("create kernel");
 
     //create array on context and write to them
     cl_mem d_v;
@@ -83,10 +88,6 @@ int main(int argc, char **argv)
     printerr("enqueue kernel args");
     clFinish(queue);
 
-
-    for(int i = 0; i < n; i++)
-        h_v[i] = 0;
-
     //transfer back
     clEnqueueReadBuffer(queue, d_v, CL_TRUE, 0, n_bytes, h_v, 0, 0, 0);
     clFinish(queue);
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
     int correct = 1;
     for(int i = 0; i < n; i++)
     {
-        printf("h_v[%i] : %f\n", i, h_v[i]);
+        //printf("h_v[%i] : %f\n", i, h_v[i]);
         if(h_v[i] != (double) 2*i)
             correct = 0;
     }
@@ -118,3 +119,28 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void print_cl_error(cl_int err, char *err_txt)
+{
+    printf("cl error: --> %s:\n -- ", err_txt);
+    switch(err)
+    {
+        case CL_INVALID_CONTEXT:
+            printf("context is not a valid context\n");
+            break;
+        case CL_INVALID_DEVICE:
+            printf("device is not a valid device or is not associated with context\n");
+            break;
+        case CL_INVALID_QUEUE_PROPERTIES:
+            printf("values specified in properties are valid but are not supported by the device\n");
+            break;
+        case CL_OUT_OF_RESOURCES:
+            printf("failure to allocate resources required by the opencl implementation of the device\n");            
+            break;
+        case CL_OUT_OF_HOST_MEMORY:
+            printf("failure to allocate resources required by the opencl implementation of the host\n");
+            break;
+        default:
+            printf("undefined error\n");
+            break;
+    }
+}
