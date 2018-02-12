@@ -12,6 +12,7 @@
 //#pragma OPENCL Extension cl_khr_fp64 : enable
 
 const char *kernel_source = 
+"#pragma OPENCL Extension cl_khr_fp64 : enable      \n"\
 "__kernel void mult(__global double *v)             \n"\
 "{                                                  \n"\
 "   int id;                                         \n"\
@@ -42,8 +43,12 @@ int main(int argc, char **argv)
 
     //setup openCL
     cl_int err;
+#define printerr(errmsg) if(err != CL_SUCCESS) printf("error: --> %s\n", errmsg);
+    
     err = clGetPlatformIDs(1, &platform, 0);
+    printerr("platform ids");
     err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_id, 0); 
+    printerr("device ids");
     context = clCreateContext(0, 1, &device_id, 0, 0, &err);
     queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
     program = clCreateProgramWithSource(context, 1, (const char **) &kernel_source, 0, &err);
@@ -69,11 +74,18 @@ int main(int argc, char **argv)
     cl_mem d_v;
     d_v = clCreateBuffer(context, CL_MEM_READ_WRITE, n_bytes, 0, 0);
     err = clEnqueueWriteBuffer(queue, d_v, CL_TRUE, 0, n_bytes, h_v, 0, 0, 0);
+    printerr("enqueue write buffer");
+    clFinish(queue);
 
     err = clSetKernelArg(k_mult, 0, sizeof(cl_mem), &d_v);
-
+    printerr("set kernel args");
     err = clEnqueueNDRangeKernel(queue, k_mult, 1, 0, &global_size, &local_size, 0, 0 ,0);
+    printerr("enqueue kernel args");
     clFinish(queue);
+
+
+    for(int i = 0; i < n; i++)
+        h_v[i] = 0;
 
     //transfer back
     clEnqueueReadBuffer(queue, d_v, CL_TRUE, 0, n_bytes, h_v, 0, 0, 0);
