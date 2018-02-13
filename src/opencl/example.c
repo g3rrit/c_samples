@@ -9,14 +9,14 @@
  
 #ifdef _WIN32
 #include <CL/cl.h>
-#elif
+#elif __APPLE__
 #include <OpenCL/opencl.h>
 #endif
 
 //enable double precision float values
 #pragma OPENCL Extension cl_khr_fp64 : enable
 
-const char *kernel_source = 
+const char *kernel_source = "\n"\
 "#pragma OPENCL Extension cl_khr_fp64 : enable      \n"\
 "__kernel void mult(__global double *v)             \n"\
 "{                                                  \n"\
