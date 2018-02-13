@@ -14,11 +14,10 @@
 #endif
 
 //enable double precision float values
-#pragma OPENCL Extension cl_khr_fp64 : enable
+//#pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 const char *kernel_source = "\n"\
-"#pragma OPENCL Extension cl_khr_fp64 : enable      \n"\
-"__kernel void mult(__global double *v)             \n"\
+"__kernel void mult(__global float *v)             \n"\
 "{                                                  \n"\
 "   int id;                                         \n"\
 "   id = get_global_id(0);                          \n"\
@@ -30,7 +29,7 @@ void print_cl_error(cl_int err, char *err_txt);
 int main(int argc, char **argv)
 {
     unsigned int n = 128;
-    size_t n_bytes = n * sizeof(double);
+    size_t n_bytes = n * sizeof(float);
 
     //openCL declarations
     cl_platform_id platform;
@@ -41,7 +40,7 @@ int main(int argc, char **argv)
     cl_kernel k_mult;
 
     //host version of v
-    double *h_v = malloc(n_bytes);
+    float *h_v = malloc(n_bytes);
     for(int i = 0; i < n; i++)
         h_v[i] = i;
 
@@ -63,6 +62,7 @@ int main(int argc, char **argv)
     printerr("create command queue");
     program = clCreateProgramWithSource(context, 1, (const char **) &kernel_source, 0, &err);
     printerr("create program with source");
+    err = clBuildProgram(program, 0 , 0, 0, 0, 0);
 
     //build the program executable
     if(err != CL_SUCCESS)
@@ -102,8 +102,8 @@ int main(int argc, char **argv)
     int correct = 1;
     for(int i = 0; i < n; i++)
     {
-        //printf("h_v[%i] : %f\n", i, h_v[i]);
-        if(h_v[i] != (double) 2*i)
+        printf("h_v[%i] : %f\n", i, h_v[i]);
+        if(h_v[i] != (float) 2*i)
             correct = 0;
     }
 
