@@ -3,13 +3,18 @@
  * First download and install the SDK for the GPU/CPU
  * compile with:    gcc -I"C:\Program Files (x86)\AMD APP SDK\3.0\include" main.c -o main.exe -L"C:\Program Files (x86)\AMD APP SDK\3.0\lib\x86" -lOpenCL
 */ 
- 
-#include <CL/cl.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+ 
+#ifdef _WIN32
+#include <CL/cl.h>
+#elif
+#include <OpenCL/opencl.h>
+#endif
 
 //enable double precision float values
-//#pragma OPENCL Extension cl_khr_fp64 : enable
+#pragma OPENCL Extension cl_khr_fp64 : enable
 
 const char *kernel_source = 
 "#pragma OPENCL Extension cl_khr_fp64 : enable      \n"\
@@ -53,9 +58,11 @@ int main(int argc, char **argv)
     printerr("device ids");
     context = clCreateContext(0, 1, &device_id, 0, 0, &err);
     printerr("create context");
-    queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
+    //queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
+    queue = clCreateCommandQueue(context, device_id, 0, &err);
     printerr("create command queue");
     program = clCreateProgramWithSource(context, 1, (const char **) &kernel_source, 0, &err);
+    printerr("create program with source");
 
     //build the program executable
     if(err != CL_SUCCESS)
@@ -125,19 +132,34 @@ void print_cl_error(cl_int err, char *err_txt)
     switch(err)
     {
         case CL_INVALID_CONTEXT:
-            printf("context is not a valid context\n");
+            printf("(CL_INVALID_CONTEXT) context is not a valid context\n");
             break;
         case CL_INVALID_DEVICE:
-            printf("device is not a valid device or is not associated with context\n");
+            printf("(CL_INVALID_DEVICE) device is not a valid device or is not associated with context\n");
             break;
         case CL_INVALID_QUEUE_PROPERTIES:
-            printf("values specified in properties are valid but are not supported by the device\n");
+            printf("(CL_INVALID_QUEUE_PROPERTIES) values specified in properties are valid but are not supported by the device\n");
             break;
         case CL_OUT_OF_RESOURCES:
-            printf("failure to allocate resources required by the opencl implementation of the device\n");            
+            printf("(CL_OUT_OUT_OF_RESOURCES) failure to allocate resources required by the opencl implementation of the device\n");            
             break;
         case CL_OUT_OF_HOST_MEMORY:
-            printf("failure to allocate resources required by the opencl implementation of the host\n");
+            printf("(CL_OUT_OG_HOST_MEMORY) failure to allocate resources required by the opencl implementation of the host\n");
+            break;
+        case CL_INVALID_PROGRAM:
+            printf("(CL_INVALID_PROGRAM) program is not a valid program object\n");
+            break;
+        case CL_INVALID_PROGRAM_EXECUTABLE:
+            printf("(CL_INVALID_PROGRAM_EXECUTABLE) there is no successfully build executable for program\n");
+            break;
+        case CL_INVALID_KERNEL_NAME:
+            printf("(CL_INVALID_KERNEL_NAME) kernel_name is not found in program\n");
+            break;
+        case CL_INVALID_KERNEL_DEFINITION:
+            printf("(CL_INVALID_KERNEL_DEFINITION) the function definition for __kernel function given by kernel_name such as the number of arguments, the argument types are not the same for alll devices for wich the program executable has been built\n");
+            break;
+        case CL_INVALID_VALUE:
+            printf("(CL_INVALID_VALUE) kernel_name is NULL\n");
             break;
         default:
             printf("undefined error\n");
