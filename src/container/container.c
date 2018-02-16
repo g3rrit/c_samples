@@ -95,6 +95,47 @@ void *map_remove_at(struct map *this, int x);
 
 void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map_info *info), void *ref);
 
+//---------- ARRAY ---------- 
+
+struct vector
+{
+    void *data;
+    int size;
+    int allocated_size;
+    int size_of_element;
+};
+
+struct vector_info
+{
+    struct vector *this;
+    int pos;
+    int size;
+};
+
+void vector_init(struct vector *this, int size_of_element, int size);
+
+int vector_resize(struct vector *this, int size);
+
+//void vector_push_front(struct vector *this, void *data);
+void vector_push_back(struct vector *this, void *data);
+
+//void *vector_pop_front(struct vector *this);
+void *vector_pop_back(struct vector *this);
+
+void *vector_at(struct vector *this, int x);
+
+void vector_delete(struct vector *this);
+
+void vector_delete_all(struct vector *this);
+
+void *vector_remove_at(struct vector *this, int x);
+
+void *vector_remove_at_unordered(struct vector *this, int x);
+
+void *vector_for_each(struct vector *this, void *(fun)(void *data, void *ref, struct vector_info *info), void *ref);
+
+//------------------------- 
+
 #endif
 
 //src
@@ -757,4 +798,106 @@ void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct 
 
 //------------------------- 
 
+//---------- MAP ---------- 
+
+#define test_resize() if(this->size >= this->allocated_size) vector_resize(this, this->size + 10)
+
+void vector_init(struct vector *this, int size_of_element, int size)
+{
+    this.size = 0;
+    this.size_of_element = size_of_element;
+    this.data = malloc(sizeof(void*) * size);
+    this.allocated_size = size;
+}
+
+int vector_resize(struct vector *this, int size)
+{
+    if(this->size >= size)
+        return 0;
+
+    this.allocated_size = size;
+    //realloc data 
+    this.data = realloc(this.data, sizeof(void*) * size);
+
+    if(!this.data)
+        return 0;
+    else
+        return 1;
+}
+
+//void vector_push_front(struct vector *this, void *data);
+void vector_push_back(struct vector *this, void *data)
+{
+    test_resize();
+
+    this.data[this.size] = data;
+    this.size++;
+}
+
+//void *vector_pop_front(struct vector *this);
+void *vector_pop_back(struct vector *this)
+{
+    void *data = this.data[this.size-1];
+    this.data[this.size - 1] = 0;
+    return data;
+}
+
+void *vector_at(struct vector *this, int x)
+{
+    return this.data[x];
+}
+
+void vector_delete(struct vector *this)
+{
+    free(this.data);
+    vector_init(this);
+}
+
+void vector_delete_all(struct vector *this)
+{
+    for(int i = 0; i < this.size; i++)
+    {
+        free(this.data[i]);
+    }
+    vector_delete(this);
+}
+
+//unordered
+void *vector_remove_at(struct vector *this, int x)
+{
+    return this.data;
+}
+
+//ordered
+void *vector_remove_at_unordered(struct vector *this, int x)
+{
+    if(x >= this.size)
+        return 0;
+
+    void *res = this.data[x];
+    this.data[x] = this.data[this.size - 1];
+    this.data[this.size - 1] = 0;
+
+    return res;
+}
+
+void *vector_for_each(struct vector *this, void *(fun)(void *data, void *ref, struct vector_info *info), void *ref)
+{
+    
+    struct vector_info info;
+    info.this = this;
+    info.pos = 0;
+    info.size = this.size;
+
+    void *retval = 0;
+    for(int i = 0; i < this->size; i++)
+    {
+        if((retval = fun(this.data[i], ref, &info)))
+            return retval;
+        info.pos++;
+    }
+    return 0;
+}
+
+//------------------------- 
 #endif
