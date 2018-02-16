@@ -99,7 +99,7 @@ void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct 
 
 struct vector
 {
-    void *data;
+    void **data;
     int size;
     int allocated_size;
     int size_of_element;
@@ -116,10 +116,10 @@ void vector_init(struct vector *this, int size_of_element, int size);
 
 int vector_resize(struct vector *this, int size);
 
-//void vector_push_front(struct vector *this, void *data);
+void vector_push_front(struct vector *this, void *data);
 void vector_push_back(struct vector *this, void *data);
 
-//void *vector_pop_front(struct vector *this);
+void *vector_pop_front(struct vector *this);
 void *vector_pop_back(struct vector *this);
 
 void *vector_at(struct vector *this, int x);
@@ -804,10 +804,10 @@ void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct 
 
 void vector_init(struct vector *this, int size_of_element, int size)
 {
-    this.size = 0;
-    this.size_of_element = size_of_element;
-    this.data = malloc(sizeof(void*) * size);
-    this.allocated_size = size;
+    this->size = 0;
+    this->size_of_element = size_of_element;
+    this->data = malloc(sizeof(void*) * size);
+    this->allocated_size = size;
 }
 
 int vector_resize(struct vector *this, int size)
@@ -815,49 +815,76 @@ int vector_resize(struct vector *this, int size)
     if(this->size >= size)
         return 0;
 
-    this.allocated_size = size;
+    this->allocated_size = size;
     //realloc data 
-    this.data = realloc(this.data, sizeof(void*) * size);
+    this->data = realloc(this->data, sizeof(void*) * size);
 
-    if(!this.data)
+    if(!this->data)
         return 0;
     else
         return 1;
 }
 
-//void vector_push_front(struct vector *this, void *data);
+void vector_push_front(struct vector *this, void *data)
+{
+    test_resize();
+
+    for(int i = this->size; i >= 0; i--)
+        this->data[i] = this->data[i-1];          
+
+    this->size++;
+
+    this->data[0] = data;
+}
+
 void vector_push_back(struct vector *this, void *data)
 {
     test_resize();
 
-    this.data[this.size] = data;
-    this.size++;
+    this->data[this->size] = data;
+    this->size++;
 }
 
-//void *vector_pop_front(struct vector *this);
+void *vector_pop_front(struct vector *this)
+{
+    void *res = this->data[0];
+
+    for(int i = 0; i < this->size - 1; i++)
+        this->data[i] = this->data[i+1];
+
+    this->data[this->size+1] = 0;
+
+    this->size--;
+
+    return res;
+}
+
 void *vector_pop_back(struct vector *this)
 {
-    void *data = this.data[this.size-1];
-    this.data[this.size - 1] = 0;
+    void *data = this->data[this->size-1];
+    this->data[this->size - 1] = 0;
+    this->size--;
     return data;
 }
 
 void *vector_at(struct vector *this, int x)
 {
-    return this.data[x];
+    return this->data[x];
 }
 
 void vector_delete(struct vector *this)
 {
-    free(this.data);
-    vector_init(this);
+    free(this->data);
+    this->size = 0;
+    this->allocated_size = 0;
+    this->data = 0;
 }
 
 void vector_delete_all(struct vector *this)
 {
-    for(int i = 0; i < this.size; i++)
+    for(int i = 0; i < this->size; i++)
     {
-        free(this.data[i]);
+        free(this->data[i]);
     }
     vector_delete(this);
 }
@@ -865,18 +892,28 @@ void vector_delete_all(struct vector *this)
 //unordered
 void *vector_remove_at(struct vector *this, int x)
 {
-    return this.data;
+    void *res = this->data[x]; 
+
+    for(; x < this->size - 1; x++)
+        this->data[x] = this->data[x+1];
+
+    this->data[this->size - 1] = 0;
+
+    this->size--;
+
+    return res;
 }
 
 //ordered
 void *vector_remove_at_unordered(struct vector *this, int x)
 {
-    if(x >= this.size)
+    if(x >= this->size)
         return 0;
 
-    void *res = this.data[x];
-    this.data[x] = this.data[this.size - 1];
-    this.data[this.size - 1] = 0;
+    void *res = this->data[x];
+    this->data[x] = this->data[this->size - 1];
+    this->data[this->size - 1] = 0;
+    this->size--;
 
     return res;
 }
@@ -887,12 +924,12 @@ void *vector_for_each(struct vector *this, void *(fun)(void *data, void *ref, st
     struct vector_info info;
     info.this = this;
     info.pos = 0;
-    info.size = this.size;
+    info.size = this->size;
 
     void *retval = 0;
     for(int i = 0; i < this->size; i++)
     {
-        if((retval = fun(this.data[i], ref, &info)))
+        if((retval = fun(this->data[i], ref, &info)))
             return retval;
         info.pos++;
     }

@@ -6,6 +6,16 @@
 
 #include "snow.h"
 
+void *v_for_each(int data, void *ref, struct vector_info *info)
+{
+    if(data == 5)
+    {
+        return 5;
+    }
+
+    return 0;
+}
+
 void *m_for_each(int data, void *ref, struct list_info *info)
 {
     if(data == 5)
@@ -44,10 +54,9 @@ void *map_m_for_each_remove(int data, void *ref, struct map_info *info)
 
 
 
-
-
 describe(container, 
 {    
+
     subdesc(list, 
     {
         it("push_front", 
@@ -376,10 +385,154 @@ describe(container,
 
     });
 
+    subdesc(vector, 
+    {
+        it("push_front", 
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 15; i++)
+            {
+                vector_push_front(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,0) , i);
+            }        
+            asserteq(mvector.size, 15);
+            vector_delete(&mvector);
+        });
 
+        it("push_back", 
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 15; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+            asserteq(mvector.size, 15);
+            vector_delete(&mvector);
+        });
+
+        it("list_delete", 
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 15; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+            asserteq(mvector.size, 15);
+            vector_delete(&mvector);
+
+            assert(!mvector.size);
+        });
+
+        it("pop_back",
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 10; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+
+            for(int i = 9; i >= 0; i--)
+            {
+                asserteq(vector_pop_back(&mvector), i);
+            }
+
+            assert(!mvector.size);
+            vector_delete(&mvector);
+        });
+
+        it("pop_front",
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 10; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+
+            for(int i = 0; i < 10; i++)
+            {
+                asserteq(vector_pop_front(&mvector), i);
+            }
+            assert(!mvector.size);
+            vector_delete(&mvector);
+        });
+
+        it("at",
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 10; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+
+            for(int i = 0; i < 10; i++)
+            {
+                asserteq(vector_at(&mvector, i), i);
+            }
+            asserteq(mvector.size, 10);
+            vector_delete(&mvector);
+        });
+
+        it("remove_at",
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 10; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+
+            asserteq(vector_remove_at(&mvector, 0), 0);
+            asserteq(vector_remove_at(&mvector, 8), 9);
+            asserteq(vector_remove_at(&mvector, 3), 4);
+            asserteq(vector_remove_at(&mvector, 5), 7);
+            asserteq(vector_remove_at(&mvector, 4), 6);
+            asserteq(vector_remove_at(&mvector, 4), 8);
+            asserteq(vector_remove_at(&mvector, 1), 2);
+            asserteq(vector_remove_at(&mvector, 0), 1);
+            asserteq(vector_remove_at(&mvector, 1), 5);
+            asserteq(vector_remove_at(&mvector, 0), 3);
+
+            asserteq(mvector.size, 0);
+            vector_delete(&mvector);
+        });
+
+        it("for_each",
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int),  10);
+            for(int i = 0; i < 10; i++)
+            {
+                vector_push_back(&mvector, i);
+                asserteq(mvector.size, i+1);
+                asserteq(vector_at(&mvector,mvector.size-1) , i);
+            }        
+
+            asserteq(vector_for_each(&mvector, &v_for_each, 0), 5);
+            asserteq(mvector.size, 9);
+            vector_delete(&mvector);
+        });
+
+
+    });
 });
 
-snow_main(
-{
-    test_container();
-});
+snow_main();

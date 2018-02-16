@@ -1,6 +1,12 @@
 #ifndef SNOW_H
 #define SNOW_H
 
+#ifdef SNOW_DISABLED
+
+#define describe(...)
+
+#else
+
 #ifndef __GNUC__
 #error "Your compiler doesn't support GNU extensions."
 #endif
@@ -27,26 +33,35 @@
 #define _SNOW_COLOR_BOLD    "\033[1m"
 #define _SNOW_COLOR_RESET   "\033[0m"
 
-static int _snow_exit_code = 0;
-static int _snow_first_define = 1;
-static int _snow_global_total = 0;
-static int _snow_global_successes = 0;
-static int _snow_num_defines = 0;
+extern int _snow_exit_code;
+extern int _snow_extra_newline;
+extern int _snow_global_total;
+extern int _snow_global_successes;
+extern int _snow_num_defines;
 
-static int _snow_opt_color = 1;
+extern int _snow_opt_color;
 
-struct {
+struct _snow_labels { 
 	void **labels;
 	size_t size;
 	size_t count;
-} _snow_labels = { NULL, 0, 0 };
+};
+extern struct _snow_labels _snow_labels;
+
+struct _snow_describes { 
+	void (**describes)();
+	size_t size;
+	size_t count;
+};
+extern struct _snow_describes _snow_describes;
 
 #define _snow_fail(desc, spaces, name, file, ...) \
 	do { \
+		_snow_extra_newline = 1; \
 		_snow_exit_code = 1; \
 		if (_snow_opt_color) { \
 			fprintf(stdout, \
-				_SNOW_COLOR_BOLD SNOW_COLOR_FAIL "%s- " \
+				_SNOW_COLOR_BOLD SNOW_COLOR_FAIL "%s✕ " \
 				_SNOW_COLOR_RESET SNOW_COLOR_FAIL "Failed:  " \
 				_SNOW_COLOR_RESET SNOW_COLOR_DESC "%s" \
 				_SNOW_COLOR_RESET ":\n%s    ", \
@@ -187,7 +202,8 @@ static int __attribute__((unused)) _snow_asserteq_buf(
 {
 	const char *_a = (const char *)a;
 	const char *_b = (const char *)b;
-	for (size_t i = 0; i < n; ++i)
+	size_t i;
+	for (i = 0; i < n; ++i)
 	{
 		if (_a[i] != _b[i])
 		{
@@ -206,7 +222,8 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 {
 	const char *_a = (const char *)a;
 	const char *_b = (const char *)b;
-	for (size_t i = 0; i < n; ++i)
+	size_t i;
+	for (i = 0; i < n; ++i)
 	{
 		if (_a[i] != _b[i])
 			return 0;
@@ -228,40 +245,61 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 			goto _snow_done; \
 	} while (0)
 
+#if(__STDC_VERSION__ >= 201112L)
+
 #define asserteq(a, b) \
 	do { \
+		_Pragma("GCC diagnostic push") \
+		_Pragma("GCC diagnostic ignored \"-Wpragmas\"") \
+		_Pragma("GCC diagnostic ignored \"-Wint-conversion\"") \
 		int r = _Generic((b), \
 			char *: _snow_asserteq_str, \
 			const char *: _snow_asserteq_str, \
 			float: _snow_asserteq_dbl, \
 			double: _snow_asserteq_dbl, \
 			default: _Generic((b) - (b), \
-				ptrdiff_t: _snow_asserteq_ptr, \
-				default: _snow_asserteq_int) \
+				int: _snow_asserteq_int, \
+				default: _Generic((b) - (b), \
+					ptrdiff_t: _snow_asserteq_ptr, \
+					default: _snow_asserteq_int)) \
 		)(_snow_desc, _snow_spaces, _snow_name, __FILE__, #a, #b, a, b); \
+		_Pragma("GCC diagnostic pop") \
 		if (r < 0) \
 			goto _snow_done; \
 	} while (0)
 #define assertneq(a, b) \
 	do { \
+		_Pragma("GCC diagnostic push") \
+		_Pragma("GCC diagnostic ignored \"-Wpragmas\"") \
+		_Pragma("GCC diagnostic ignored \"-Wint-conversion\"") \
 		int r = _Generic((b), \
 			char *: _snow_assertneq_str, \
 			const char *: _snow_assertneq_str, \
 			float: _snow_assertneq_dbl, \
 			double: _snow_assertneq_dbl, \
 			default: _Generic((b) - (b), \
-				ptrdiff_t: _snow_assertneq_ptr, \
-				default: _snow_assertneq_int) \
+				int: _snow_asserteq_int, \
+				default: _Generic((b) - (b), \
+					ptrdiff_t: _snow_asserteq_ptr, \
+					default: _snow_asserteq_int)) \
 		)(_snow_desc, _snow_spaces, _snow_name, __FILE__, #a, #b, a, b); \
+		_Pragma("GCC diagnostic pop") \
 		if (r < 0) \
 			goto _snow_done; \
 	} while (0)
+#else
+
+#define asserteq(a, b) _Pragma("GCC error \"asserteq requires support for C11.\"")
+#define assertneq(a, b) _Pragma("GCC error \"assertneq requires support for C11.\"")
+
+#endif
 
 #define _snow_print_success() \
 	do { \
+		_snow_extra_newline = 1; \
 		if (_snow_opt_color) { \
 			fprintf(stdout, \
-				_SNOW_COLOR_BOLD SNOW_COLOR_SUCCESS "%s+ " \
+				_SNOW_COLOR_BOLD SNOW_COLOR_SUCCESS "%s✓ " \
 				_SNOW_COLOR_RESET SNOW_COLOR_SUCCESS "Success: " \
 				_SNOW_COLOR_RESET SNOW_COLOR_DESC "%s" \
 				_SNOW_COLOR_RESET "\n", \
@@ -275,9 +313,8 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 
 #define _snow_print_run() \
 	do { \
-		if (_snow_depth > 0 || _snow_first_define) { \
+		if (_snow_extra_newline) { \
 			fprintf(stdout, "\n"); \
-			_snow_first_define = 0; \
 		} \
 		if (_snow_opt_color) { \
 			fprintf(stdout, \
@@ -292,6 +329,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 
 #define _snow_print_done() \
 	do { \
+		_snow_extra_newline = 0; \
 		if (_snow_opt_color) { \
 			fprintf(stdout, \
 				_SNOW_COLOR_BOLD "%s%s: Passed %i/%i tests." \
@@ -304,12 +342,12 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 		} \
 	} while (0)
 
-#define defer(expr) \
+#define defer(...) \
 	do { \
 		__label__ _snow_defer_label; \
 		_snow_defer_label: \
 		if (_snow_rundefer) { \
-			expr; \
+			__VA_ARGS__; \
 			/* Go to the previous defer, or the end of the `it` block */ \
 			if (_snow_labels.count > 0) \
 				goto *_snow_labels.labels[--_snow_labels.count]; \
@@ -320,7 +358,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 			/* Realloc labels array if necessary */ \
 			if (_snow_labels.count >= _snow_labels.size) { \
 				if (_snow_labels.size == 0) \
-					_snow_labels.size = 3; \
+					_snow_labels.size = 16; \
 				else \
 					_snow_labels.size *= 2; \
 				_snow_labels.labels = realloc( \
@@ -337,7 +375,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 	do { \
 		__label__ _snow_done; \
 		int __attribute__((unused)) _snow_rundefer = 0; \
-		char *_snow_desc = testdesc; \
+		const char *_snow_desc = testdesc; \
 		_snow_total += 1; \
 		__VA_ARGS__ \
 		_snow_successes += 1; \
@@ -363,7 +401,8 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 		/* Malloc because Clang doesn't like using a variable length
 		 * stack allocated array here, because dynamic gotos */ \
 		char *_snow_spaces = malloc(_snow_depth * 2 + 1); \
-		for (int i = 0; i < _snow_depth * 2; ++i) \
+		int i; \
+		for (i = 0; i < _snow_depth * 2; ++i) \
 			_snow_spaces[i] = ' '; \
 		_snow_spaces[_snow_depth * 2] = '\0'; \
 		_snow_print_run(); \
@@ -377,7 +416,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 #define describe(testname, ...) \
 	static void test_##testname() { \
 		_snow_num_defines += 1; \
-		char *_snow_name = #testname; \
+		const char *_snow_name = #testname; \
 		int __attribute__((unused)) _snow_depth = 0; \
 		int _snow_successes = 0; \
 		int _snow_total = 0; \
@@ -387,22 +426,50 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 		_snow_print_done(); \
 		_snow_global_successes += _snow_successes; \
 		_snow_global_total += _snow_total; \
+	} \
+	__attribute__((constructor)) \
+	static void _snow_constructor_##testname() { \
+		_snow_describes.count += 1; \
+		if (_snow_describes.count >= _snow_describes.size) { \
+			if (_snow_describes.size == 0) \
+				_snow_describes.size = 16; \
+			else \
+				_snow_describes.size *= 2; \
+			_snow_describes.describes = realloc( \
+				_snow_describes.describes, \
+				_snow_describes.size * sizeof(*_snow_describes.describes)); \
+		} \
+		_snow_describes.describes[_snow_describes.count - 1] = \
+			&test_##testname; \
 	}
 
-#define snow_main(...) \
+#define snow_main() \
+	int _snow_exit_code = 0; \
+	int _snow_extra_newline = 1; \
+	int _snow_global_total = 0; \
+	int _snow_global_successes = 0; \
+	int _snow_num_defines = 0; \
+	int _snow_opt_color = 1; \
+	struct _snow_labels _snow_labels = { NULL, 0, 0 }; \
+	struct _snow_describes _snow_describes = { NULL, 0, 0 }; \
 	int main(int argc, char **argv) { \
 		if (!isatty(1)) \
 			_snow_opt_color = 0; \
 		else if (getenv("NO_COLOR") != NULL) \
 			_snow_opt_color = 0; \
-		for (int i = 1; i < argc; ++i) { \
+		int i; \
+		for (i = 1; i < argc; ++i) { \
 			if (strcmp(argv[i], "--color") == 0) \
 				_snow_opt_color = 1; \
 			else if (strcmp(argv[i], "--no-color") == 0) \
 				_snow_opt_color = 0; \
 		} \
-		__VA_ARGS__ \
+		size_t j; \
+		for (j = 0; j < _snow_describes.count; ++j) { \
+			_snow_describes.describes[j](); \
+		} \
 		free(_snow_labels.labels); \
+		free(_snow_describes.describes); \
 		if (_snow_num_defines > 1) { \
 			if (_snow_opt_color) { \
 				fprintf(stdout, \
@@ -417,5 +484,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 		} \
 		return _snow_exit_code; \
 	}
+
+#endif
 
 #endif
