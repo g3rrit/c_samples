@@ -527,7 +527,7 @@ describe(container,
             }        
 
             asserteq(vector_for_each(&mvector, &v_for_each, 0), 5);
-            asserteq(mvector.size, 9);
+            asserteq(mvector.size, 10);
             vector_delete(&mvector);
         });
 

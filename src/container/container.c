@@ -95,7 +95,7 @@ void *map_remove_at(struct map *this, int x);
 
 void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct map_info *info), void *ref);
 
-//---------- ARRAY ---------- 
+//---------- VECTOR ---------- 
 
 struct vector
 {
@@ -801,6 +801,7 @@ void *map_for_each(struct map *this, void *(*fun)(void *data, void *ref, struct 
 //---------- MAP ---------- 
 
 #define test_resize() if(this->size >= this->allocated_size) vector_resize(this, this->size + 10)
+#define test_shrink() if(this->size <= this->allocated_size - 20) vector_resize(this, this->size + 10)
 
 void vector_init(struct vector *this, int size_of_element, int size)
 {
@@ -852,9 +853,11 @@ void *vector_pop_front(struct vector *this)
     for(int i = 0; i < this->size - 1; i++)
         this->data[i] = this->data[i+1];
 
-    this->data[this->size+1] = 0;
+    this->data[this->size-1] = 0;
 
     this->size--;
+
+    test_shrink();
 
     return res;
 }
@@ -864,6 +867,9 @@ void *vector_pop_back(struct vector *this)
     void *data = this->data[this->size-1];
     this->data[this->size - 1] = 0;
     this->size--;
+
+    test_shrink();
+
     return data;
 }
 
@@ -878,6 +884,7 @@ void vector_delete(struct vector *this)
     this->size = 0;
     this->allocated_size = 0;
     this->data = 0;
+    this->size_of_element = 0;
 }
 
 void vector_delete_all(struct vector *this)
@@ -901,6 +908,8 @@ void *vector_remove_at(struct vector *this, int x)
 
     this->size--;
 
+    test_shrink();
+
     return res;
 }
 
@@ -914,6 +923,8 @@ void *vector_remove_at_unordered(struct vector *this, int x)
     this->data[x] = this->data[this->size - 1];
     this->data[this->size - 1] = 0;
     this->size--;
+
+    test_shrink();
 
     return res;
 }
