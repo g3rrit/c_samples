@@ -124,6 +124,8 @@ void *vector_pop_back(struct vector *this);
 
 void *vector_at(struct vector *this, int x);
 
+int vector_set(struct vector *this, int x, void *data);
+
 void vector_delete(struct vector *this);
 
 void vector_delete_all(struct vector *this);
@@ -876,6 +878,18 @@ void *vector_pop_back(struct vector *this)
 void *vector_at(struct vector *this, int x)
 {
     return this->data[x];
+}
+
+int vector_set(struct vector *this, int x, void *data)
+{
+    if(this->allocated_size <= x)
+       vector_resize(this, x + 10);
+
+    if(this->size <= x)
+        this->size = x+1;
+
+    this->data[x] = data;
+    return 1;
 }
 
 void vector_delete(struct vector *this)

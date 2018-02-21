@@ -415,7 +415,7 @@ describe(container,
             vector_delete(&mvector);
         });
 
-        it("list_delete", 
+        it("delete", 
         {
             struct vector mvector;
             vector_init(&mvector, sizeof(int),  10);
@@ -483,6 +483,19 @@ describe(container,
 
             for(int i = 0; i < 10; i++)
             {
+                asserteq(vector_at(&mvector, i), i);
+            }
+            asserteq(mvector.size, 10);
+            vector_delete(&mvector);
+        });
+
+        it("set",
+        {
+            struct vector mvector;
+            vector_init(&mvector, sizeof(int), 5);
+            for(int i = 0; i < 10; i++)
+            {
+                vector_set(&mvector, i, i); 
                 asserteq(vector_at(&mvector, i), i);
             }
             asserteq(mvector.size, 10);
