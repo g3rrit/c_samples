@@ -47,3 +47,9 @@ lineareq:
 	$(CC) $(SRCF_LIN) $(SRCFM_LIN) -o $(BUILD_DIR)/$(TARGET)
 	$(BUILD_DIR)/$(TARGET)
 
+#opencl:
+
+opencl:
+	$(CC) -I"C:\Program Files (x86)\AMD APP SDK\3.0\include" -I./src/container ./src/container/container.c ./src/opencl/wopencl.c -o $(BUILD_DIR)\$(TARGET) -L"C:\Program Files (x86)\AMD APP SDK\3.0\lib\x86" -lOpenCL
+
+
