@@ -50,6 +50,7 @@ lineareq:
 #opencl:
 
 opencl:
-	$(CC) -I"C:\Program Files (x86)\AMD APP SDK\3.0\include" -I./src/container ./src/container/container.c ./src/opencl/wopencl.c -o $(BUILD_DIR)\$(TARGET) -L"C:\Program Files (x86)\AMD APP SDK\3.0\lib\x86" -lOpenCL
+	$(CC) -I"C:\Program Files (x86)\AMD APP SDK\3.0\include" -I./src/opencl -I./src/container -I./src/unittest ./src/container/container.c ./src/opencl/wopencl.c ./src/test/opencl_test.c -o $(BUILD_DIR)/$(TARGET) -L"C:\Program Files (x86)\AMD APP SDK\3.0\lib\x86" -lOpenCL
+	$(BUILD_DIR/$(TARGET)
 
 

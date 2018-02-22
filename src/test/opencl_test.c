@@ -46,15 +46,15 @@ describe(opencl,
         size_t bsize = sizeof(float) * 32;
         int bpos = cl_create_buffer(BUFFER_RW, bsize);
         
-        float *h_m = malloc(bsize);
+        float *h_v = malloc(bsize);
         for(int i = 0; i < 32; i++)
-            h_m[i] = i;
+            h_v[i] = i;
 
         cl_write_buffer(bpos, h_v, bsize);
         cl_finish();
 
         for(int i = 0; i < 32; i++)
-            h_m[i] = 0;
+            h_v[i] = 0;
 
         cl_read_buffer(bpos, h_v, bsize);
         cl_finish();
@@ -72,9 +72,9 @@ describe(opencl,
         size_t bsize = sizeof(float) * 32;
         int bpos = cl_create_buffer(BUFFER_RW, bsize);
         
-        float *h_m = malloc(bsize);
+        float *h_v = malloc(bsize);
         for(int i = 0; i < 32; i++)
-            h_m[i] = i;
+            h_v[i] = i;
 
         cl_write_buffer(bpos, h_v, bsize);
         cl_finish();
@@ -96,3 +96,4 @@ describe(opencl,
 });
 
 snow_main();
+

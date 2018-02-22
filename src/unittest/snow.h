@@ -452,7 +452,8 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 	int _snow_opt_color = 1; \
 	struct _snow_labels _snow_labels = { NULL, 0, 0 }; \
 	struct _snow_describes _snow_describes = { NULL, 0, 0 }; \
-	int main(int argc, char **argv) { \
+    int main(int argc, char **argv) \
+    { \
 		if (!isatty(1)) \
 			_snow_opt_color = 0; \
 		else if (getenv("NO_COLOR") != NULL) \
@@ -483,8 +484,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 			} \
 		} \
 		return _snow_exit_code; \
-	}
-
+    }
 #endif
 
 #endif

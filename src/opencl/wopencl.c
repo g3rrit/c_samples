@@ -16,7 +16,7 @@
 #include <OpenCL/opencl.h>
 #endif
 
-int cl_init(char **program_s);
+int cl_init(const char **program_s);
 
 int cl_create_kernel(char *name);
 int cl_create_kernel_at(char *name, int x);
@@ -61,7 +61,7 @@ struct vector cl_kernel_v;
 //opencl memory buffers
 struct vector cl_mem_v;
 
-int cl_init(char **program_s)
+int cl_init(const char **program_s)
 {
     cl_int err;
 #define printerr(errmsg) if(err != CL_SUCCESS) {print_cl_error(err, errmsg); return 0;}
