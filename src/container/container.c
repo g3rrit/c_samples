@@ -811,6 +811,8 @@ void vector_init(struct vector *this, int size_of_element, int size)
     this->size_of_element = size_of_element;
     this->data = malloc(sizeof(void*) * size);
     this->allocated_size = size;
+    for(int i = 0; i < size; i++)
+        this->data[i] = 0;
 }
 
 int vector_resize(struct vector *this, int size)
@@ -818,9 +820,12 @@ int vector_resize(struct vector *this, int size)
     if(this->size >= size)
         return 0;
 
-    this->allocated_size = size;
     //realloc data 
     this->data = realloc(this->data, sizeof(void*) * size);
+
+    this->allocated_size = size;
+    for(int i = this->size; i < this->allocated_size; i++)
+        this->data[i] = 0;
 
     if(!this->data)
         return 0;

@@ -18,6 +18,29 @@
 #include <string.h>
 #include <unistd.h>
 
+#if defined _WIN32 || defined _WIN64
+//WINDOWS
+#ifndef SNOW_COLOR_SUCCESS
+#define SNOW_COLOR_SUCCESS ""
+#endif
+
+#ifndef SNOW_COLOR_FAIL
+#define SNOW_COLOR_FAIL ""
+#endif
+
+#ifndef SNOW_COLOR_DESC
+#define SNOW_COLOR_DESC ""
+#endif
+
+#define _SNOW_COLOR_BOLD    ""
+#define _SNOW_COLOR_RESET   ""
+
+#define SUCC_SYMBOL "+"
+#define FAIL_SYMBOL "-"
+
+#else
+
+//UNITX:
 #ifndef SNOW_COLOR_SUCCESS
 #define SNOW_COLOR_SUCCESS "\033[32m"
 #endif
@@ -32,6 +55,11 @@
 
 #define _SNOW_COLOR_BOLD    "\033[1m"
 #define _SNOW_COLOR_RESET   "\033[0m"
+
+#define SUCC_SYMBOL "✓"
+#define FAIL_SYMBOL "✕"
+
+#endif
 
 extern int _snow_exit_code;
 extern int _snow_extra_newline;
@@ -61,7 +89,7 @@ extern struct _snow_describes _snow_describes;
 		_snow_exit_code = 1; \
 		if (_snow_opt_color) { \
 			fprintf(stdout, \
-				_SNOW_COLOR_BOLD SNOW_COLOR_FAIL "%s✕ " \
+				_SNOW_COLOR_BOLD SNOW_COLOR_FAIL "%s" FAIL_SYMBOL \
 				_SNOW_COLOR_RESET SNOW_COLOR_FAIL "Failed:  " \
 				_SNOW_COLOR_RESET SNOW_COLOR_DESC "%s" \
 				_SNOW_COLOR_RESET ":\n%s    ", \
@@ -299,7 +327,7 @@ static int __attribute__((unused)) _snow_assertneq_buf(
 		_snow_extra_newline = 1; \
 		if (_snow_opt_color) { \
 			fprintf(stdout, \
-				_SNOW_COLOR_BOLD SNOW_COLOR_SUCCESS "%s✓ " \
+				_SNOW_COLOR_BOLD SNOW_COLOR_SUCCESS "%s" SUCC_SYMBOL \
 				_SNOW_COLOR_RESET SNOW_COLOR_SUCCESS "Success: " \
 				_SNOW_COLOR_RESET SNOW_COLOR_DESC "%s" \
 				_SNOW_COLOR_RESET "\n", \

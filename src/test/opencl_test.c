@@ -45,6 +45,11 @@ describe(opencl,
         int pos = cl_create_kernel("mult");
         size_t bsize = sizeof(float) * 32;
         int bpos = cl_create_buffer(BUFFER_RW, bsize);
+
+        print_cl_mem_kernel();
+
+        asserteq(pos, 0);
+        asserteq(bpos, 0);
         
         float *h_v = malloc(bsize);
         for(int i = 0; i < 32; i++)
@@ -64,6 +69,36 @@ describe(opencl,
 
         cl_delete(&kernel_source);
     });
+
+    it("read write buffer at",
+    {
+        cl_init(&kernel_source);
+        int pos = cl_create_kernel_at("mult", 3);
+        size_t bsize = sizeof(float) * 32;
+        int bpos = cl_create_buffer_at(BUFFER_RW, bsize, 3);
+
+        printf("bpos %i\n", bpos);
+        print_cl_mem_kernel();
+        
+        float *h_v = malloc(bsize);
+        for(int i = 0; i < 32; i++)
+            h_v[i] = i;
+
+        cl_write_buffer(bpos, h_v, bsize);
+        cl_finish();
+
+        for(int i = 0; i < 32; i++)
+            h_v[i] = 0;
+
+        cl_read_buffer(bpos, h_v, bsize);
+        cl_finish();
+
+        for(int i = 0; i < 32; i++)
+            asserteq(h_v[i], i);
+
+        cl_delete(&kernel_source);
+    });
+
 
     it("run kernel",
     {
@@ -87,7 +122,7 @@ describe(opencl,
         cl_finish();
 
         for(int i = 0; i < 32; i++)
-            asserteq(h_v[i], i);
+            asserteq(h_v[i], 2*i);
 
         cl_delete(&kernel_source);
     });

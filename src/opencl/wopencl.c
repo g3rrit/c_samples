@@ -38,7 +38,10 @@ void cl_finish();
 
 int cl_delete();
 
+//debug:
 void print_cl_error(cl_int err, char *err_txt);
+
+void print_cl_mem_kernel();
 
 #endif
 
@@ -94,8 +97,8 @@ int cl_init(const char **program_s)
         }
     }
 
-    vector_init(&cl_kernel_v, sizeof(void*), 10);
-    vector_init(&cl_mem_v, sizeof(void*), 10);
+    vector_init(&cl_kernel_v, sizeof(cl_mem*), 10);
+    vector_init(&cl_mem_v, sizeof(cl_kernel*), 10);
 
     return 1;
 }
@@ -166,7 +169,7 @@ int cl_read_buffer(int d_buffer, void *buffer, size_t size)
 {
     cl_int err;
     cl_mem *m_temp = vector_at(&cl_mem_v, d_buffer);
-    err = clEnqueueWriteBuffer(queue, *m_temp, CL_FALSE, 0, size, buffer, 0, 0, 0);
+    err = clEnqueueReadBuffer(queue, *m_temp, CL_FALSE, 0, size, buffer, 0, 0, 0);
     printerr("write buffer");
     return 1;
 }
@@ -175,7 +178,7 @@ int cl_write_buffer(int d_buffer, void *buffer, size_t size)
 {
     cl_int err;
     cl_mem *m_temp = vector_at(&cl_mem_v, d_buffer);
-    err = clEnqueueReadBuffer(queue, *m_temp, CL_FALSE, 0, size, buffer, 0, 0, 0);
+    err = clEnqueueWriteBuffer(queue, *m_temp, CL_FALSE, 0, size, buffer, 0, 0, 0);
     printerr("read buffer");
     return 1;
 }
@@ -264,6 +267,22 @@ void print_cl_error(cl_int err, char *err_txt)
         default:
             printf("undefined error\n");
             break;
+    }
+}
+
+void print_cl_mem_kernel()
+{
+    printf("cl memory buffers:\n");
+    for(int i = 0; i < cl_mem_v.size; i++)
+    {
+        void *temp = vector_at(&cl_mem_v, i); 
+        printf("\tcl_mem_v[%i]: %p\n", i, temp); 
+    }
+    printf("cl kernels:\n");
+    for(int i = 0; i < cl_mem_v.size; i++)
+    {
+        void *temp = vector_at(&cl_kernel_v, i); 
+        printf("\tcl_kernel_v[%i]: %p\n", i, temp);
     }
 }
 
