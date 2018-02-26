@@ -213,15 +213,21 @@ int cl_delete()
     for(int i = 0; i < cl_mem_v.size; i++)
     {
         cl_mem *m_temp = vector_at(&cl_mem_v, i);
-        clReleaseMemObject(*m_temp);
-        free(m_temp);
+        if(m_temp)
+        {
+            clReleaseMemObject(*m_temp);
+            free(m_temp);
+        }
     }
     clReleaseProgram(program);
     for(int i = 0; i < cl_kernel_v.size; i++)
     {
         cl_kernel *k_temp = vector_at(&cl_kernel_v, i);
-        clReleaseKernel(*k_temp);
-        free(k_temp);
+        if(k_temp)
+        {
+            clReleaseKernel(*k_temp);
+            free(k_temp);
+        }
     }
     clReleaseCommandQueue(queue);
     clReleaseContext(context);

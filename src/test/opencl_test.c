@@ -18,7 +18,7 @@ describe(opencl,
     it("init",
     {
         cl_init(&kernel_source);
-        cl_delete(&kernel_source);
+        cl_delete();
     });
 
     it("create kernel",
@@ -26,7 +26,7 @@ describe(opencl,
         cl_init(&kernel_source);
         int pos = cl_create_kernel("mult");
         assert(!pos);
-        cl_delete(&kernel_source);
+        cl_delete();
     });
 
     it("create buffer",
@@ -36,7 +36,7 @@ describe(opencl,
         size_t bsize = sizeof(float) * 32;
         int bpos = cl_create_buffer(BUFFER_RW, bsize);
         assert(!bpos);
-        cl_delete(&kernel_source);
+        cl_delete();
     });
 
     it("read write buffer",
@@ -45,8 +45,6 @@ describe(opencl,
         int pos = cl_create_kernel("mult");
         size_t bsize = sizeof(float) * 32;
         int bpos = cl_create_buffer(BUFFER_RW, bsize);
-
-        print_cl_mem_kernel();
 
         asserteq(pos, 0);
         asserteq(bpos, 0);
@@ -67,7 +65,7 @@ describe(opencl,
         for(int i = 0; i < 32; i++)
             asserteq(h_v[i], i);
 
-        cl_delete(&kernel_source);
+        cl_delete();
     });
 
     it("read write buffer at",
@@ -77,9 +75,6 @@ describe(opencl,
         size_t bsize = sizeof(float) * 32;
         int bpos = cl_create_buffer_at(BUFFER_RW, bsize, 3);
 
-        printf("bpos %i\n", bpos);
-        print_cl_mem_kernel();
-        
         float *h_v = malloc(bsize);
         for(int i = 0; i < 32; i++)
             h_v[i] = i;
@@ -96,7 +91,7 @@ describe(opencl,
         for(int i = 0; i < 32; i++)
             asserteq(h_v[i], i);
 
-        cl_delete(&kernel_source);
+        cl_delete();
     });
 
 
@@ -124,7 +119,7 @@ describe(opencl,
         for(int i = 0; i < 32; i++)
             asserteq(h_v[i], 2*i);
 
-        cl_delete(&kernel_source);
+        cl_delete();
     });
 
 
