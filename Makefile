@@ -51,6 +51,18 @@ lineareq:
 
 opencl:
 	$(CC) -I"C:\Program Files (x86)\AMD APP SDK\3.0\include" -I./src/opencl -I./src/container -I./src/unittest ./src/container/container.c ./src/opencl/wopencl.c ./src/test/opencl_test.c -o $(BUILD_DIR)/$(TARGET) -L"C:\Program Files (x86)\AMD APP SDK\3.0\lib\x86" -lOpenCL
-	$(BUILD_DIR/$(TARGET)
+	$(BUILD_DIR)/$(TARGET)
+
+#socket
+
+socket_s:
+	$(CC) -I./src/tcp ./src/tcp/mains.c ./src/tcp/server.c -o $(BUILD_DIR)/$(TARGET)
+	$(BUILD_DIR)/$(TARGET)
+
+socket_c:
+	$(CC) -I./src/tcp ./src/tcp/mainc.c ./src/tcp/client.c -o $(BUILD_DIR)/$(TARGET)
+	$(BUILD_DIR)/$(TARGET)
+
+
 
 
