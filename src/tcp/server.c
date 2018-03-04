@@ -14,7 +14,7 @@ int server_close();
 #if defined _WIN32 || defined _WIN64
 #define WINDOWS
 #include <winsock2.h>
-//ling with Ws2_32.lib
+//link with Ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
 #else
 #include <sys/socket.h>
@@ -34,7 +34,7 @@ int server_init(char *address, int port)
 {
 #ifdef WINDOWS
    WSADATA wsa; 
-   if(!WSAStartup(MAKEWORD(2,2), &wsa))
+   if(WSAStartup(MAKEWORD(2,2), &wsa))
    {
        printf("Failed to initialize WSA error: %d\n", WSAGetLastError());
        return -1;
@@ -54,7 +54,8 @@ int server_init(char *address, int port)
     sock_a.sin_port = port;
 
     struct sockaddr_in sock_p;
-    socklen_t addrlen = sizeof(struct sockaddr);
+    //socklen_t instead of int
+    int addrlen = sizeof(struct sockaddr);
 
     int error = bind(socket_id, (struct sockaddr*) &sock_a, sizeof(sock_a));
     if(error < 0)
@@ -70,9 +71,11 @@ int server_init(char *address, int port)
         return -4;
     }
 
+    printf("listening for connections\n");
     while(1)
     {
         int socket_c_id = accept(socket_id, (struct sockaddr*) &sock_p, &addrlen);
+        printf("socket_c_id %i\n", socket_c_id);
         printf("accepted connection\n");
         int msglen = recv(socket_c_id, buffer, 200, 0);
         for(int i = 0; i < msglen; i++)

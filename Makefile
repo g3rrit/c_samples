@@ -63,6 +63,13 @@ socket_c:
 	$(CC) -I./src/tcp ./src/tcp/mainc.c ./src/tcp/client.c -o $(BUILD_DIR)/$(TARGET)
 	$(BUILD_DIR)/$(TARGET)
 
+win_socket_s:
+	$(CC) -I./src/tcp ./src/tcp/mains.c ./src/tcp/server.c -o $(BUILD_DIR)/$(TARGET) -lws2_32
+	$(BUILD_DIR)/$(TARGET)
+
+win_socket_c:
+	$(CC) -I./src/tcp ./src/tcp/mainc.c ./src/tcp/client.c -o $(BUILD_DIR)/$(TARGET) -lws2_32
+
 
 
 

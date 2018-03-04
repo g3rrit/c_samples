@@ -2,10 +2,11 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <sys/types.h>
 #if defined _WIN32 || defined _WIN64
 #define WINDOWS
 #include <winsock2.h>
-//ling with Ws2_32.lib
+//link with Ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
 #else
 #include <sys/socket.h>
@@ -34,20 +35,33 @@ int client_delete(struct client *this);
 #ifndef CLIENT_C
 
 #include "stdio.h"
+#include "string.h"
 
 int client_connect(struct client *this, char *address, int port)
 {
+    
     int error;
 #ifdef WINDOWS
-   WSADATA wsa; 
-   if(!WSAStartup(MAKEWORD(2,2), &wsa))
-   {
+    WSADATA wsa; 
+    if(SAStartup(MAKEWORD(2,2), &wsa))
+    {
        printf("Failed to initialize WSA error: %d\n", WSAGetLastError());
        return -1;
-   }
-#endif
+    }
 
-   this->address.sin_addr.s_addr = inet_addr(address);
+    this->address.sin_addr.s_addr = inet_addr(address);
+#else
+
+    struct hostent *dest_id;
+    dest_id = gethostbyname(address);
+    if(!dest_id)
+    {
+       printf("host unknown\n");
+       return -1;
+    }
+    memcpy(&(this->address.sin_addr), dest_id->h_addr, dest_id->h_length);
+
+#endif
 
     this->address.sin_port = port;
     this->address.sin_family = AF_INET;
@@ -56,14 +70,14 @@ int client_connect(struct client *this, char *address, int port)
     if(this->socket_id <= 0)
     {
         printf("error on socket\n");
-        return -1;
+        return -2;
     }
 
     error = connect(this->socket_id, (struct sockaddr*) &(this->address),  sizeof(this->address));
-    if(error <= 0)
+    if(error < 0)
     {
         printf("error connecting on socket: %i\n", error);
-        return -2;
+        return -3;
     }
 
 
