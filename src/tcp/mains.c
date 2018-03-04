@@ -4,8 +4,9 @@
 
 int main()
 {
-    server_init("127.0.0.1", 5000);
-    server_close();
+    struct server s;
+    server_init(&s, "127.0.0.1", 5000);
+    server_close(&s);
 
     return 0;
 }
