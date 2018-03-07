@@ -2,6 +2,10 @@
 #include "server.c"
 #undef SERVER_C
 
+#define THREAD_C
+#include "thread.c"
+#undef THREAD_C
+
 #include <string.h>
 
 int client_fun(struct client_info *info, void *data, int len)
@@ -17,6 +21,22 @@ int client_fun(struct client_info *info, void *data, int len)
     return 1;
 }
 
+void *server_talk_fun(struct server *this)
+{
+    char buffer[200];
+    buffer[0] = 'o';
+    while(buffer[0] != 'q')
+    {
+        scanf("%s", buffer);
+        int msglen = strlen(buffer);
+        printf("buffer: %s\n", buffer);
+        printf("len: %i\n", msglen);
+        server_broadcast(this, buffer, msglen);
+    }
+
+    return 0;
+}
+
 int main()
 {
     struct server s;
@@ -26,14 +46,19 @@ int main()
     t_id[0] = '0';
     t_id[1] = 0;
 
+    struct thread s_thread;
+    thread_init(&s_thread);
+    thread_create(&s_thread, 0, &server_talk_fun, &s);
+
     while(1)
     {
-        printf("listening for clients\n");
         struct client_info *p_cl = server_listen(&s);
-        printf("adding client to servermap\n");
         server_add_client(&s, p_cl, t_id, 0, &client_fun);
         t_id[0]++;       
     }
+
+    void *rval = 0;
+    thread_join(&s_thread, rval);
 
     free(t_id);
 

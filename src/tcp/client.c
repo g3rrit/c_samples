@@ -50,6 +50,10 @@ int client_delete(struct client *this);
 #include "stdio.h"
 #include "string.h"
 
+#define LOG_C
+#include "log.c"
+#undef LOG_C
+
 void *client_thread_fun(struct client *this)
 {
     char buffer[100];
@@ -82,7 +86,7 @@ int client_connect(struct client *this, char *address, int port)
     WSADATA wsa; 
     if(WSAStartup(MAKEWORD(2,2), &wsa))
     {
-       printf("Failed to initialize WSA error: %d\n", WSAGetLastError());
+       log_out("Failed to initialize WSA error: %d\n", WSAGetLastError());
        return -1;
     }
 
@@ -93,7 +97,7 @@ int client_connect(struct client *this, char *address, int port)
     dest_id = gethostbyname(address);
     if(!dest_id)
     {
-       printf("host unknown\n");
+       log_out("host unknown\n");
        return -1;
     }
     memcpy(&(this->address.sin_addr), dest_id->h_addr, dest_id->h_length);
@@ -106,14 +110,14 @@ int client_connect(struct client *this, char *address, int port)
     this->socket_id = socket(AF_INET, SOCK_STREAM, 0);
     if(this->socket_id <= 0)
     {
-        printf("error on socket\n");
+        log_out("error on socket\n");
         return -2;
     }
 
     error = connect(this->socket_id, (struct sockaddr*) &(this->address),  sizeof(this->address));
     if(error < 0)
     {
-        printf("error connecting on socket: %i\n", error);
+        log_out("error connecting on socket: %i\n", error);
         return -3;
     }
 
@@ -128,16 +132,9 @@ int client_send(struct client *this, char *buffer, int len)
     int error = send(this->socket_id, buffer, len, 0);
     if(error < 0)
     {
-        printf("error sending %i\n", error);
+        log_out("error sending %i\n", error);
         return -1;
     }
-
-    /*
-    char rbuffer[200];
-    int rlen = recv(this->socket_id, rbuffer, 200, 0);
-    for(int i = 0; i < 200; i++)
-        printf("%c", rbuffer[i]);
-        */
 
     return 1;
 }

@@ -56,19 +56,19 @@ opencl:
 #socket
 
 socket_s:
-	$(CC) -I./src/tcp  -I./src/container -I./src/thread ./src/container/container.c ./src/thread/thread.c ./src/tcp/mains.c ./src/tcp/server.c -o $(BUILD_DIR)/$(TARGET) -lpthread
+	$(CC) -DLOG -I./src/tcp  -I./src/log -I./src/container -I./src/thread ./src/log/log.c ./src/container/container.c ./src/thread/thread.c ./src/tcp/mains.c ./src/tcp/server.c -o $(BUILD_DIR)/$(TARGET) -lpthread
 	$(BUILD_DIR)/$(TARGET)
 
 socket_c:
-	$(CC) -I./src/tcp  -I./src/container -I./src/thread ./src/container/container.c ./src/thread/thread.c ./src/tcp/mainc.c ./src/tcp/client.c -o $(BUILD_DIR)/$(TARGET) -lpthread
+	$(CC) -DLOG -I./src/tcp  -I./src/log -I./src/container -I./src/thread  ./src/log/log.c ./src/container/container.c ./src/thread/thread.c ./src/tcp/mainc.c ./src/tcp/client.c -o $(BUILD_DIR)/$(TARGET) -lpthread
 	$(BUILD_DIR)/$(TARGET)
 
 win_socket_s:
-	$(CC) -I./src/tcp -I./src/container -I./src/thread ./src/container/container.c ./src/thread/thread.c ./src/tcp/mains.c ./src/tcp/server.c -o ./build/server.exe -lws2_32 
+	$(CC) -DLOG -I./src/tcp  -I./src/log -I./src/container -I./src/thread  ./src/log/log.c ./src/container/container.c ./src/thread/thread.c ./src/tcp/mains.c ./src/tcp/server.c -o ./build/server.exe -lws2_32 
 	./build/server.exe
 
 win_socket_c:
-	$(CC) -I./src/tcp  -I./src/container -I./src/thread ./src/container/container.c ./src/thread/thread.c ./src/tcp/mainc.c ./src/tcp/client.c -o ./build/client.exe -lws2_32 
+	$(CC) -DLOG -I./src/tcp  -I./src/log -I./src/container -I./src/thread  ./src/log/log.c ./src/container/container.c ./src/thread/thread.c ./src/tcp/mainc.c ./src/tcp/client.c -o ./build/client.exe -lws2_32 
 	./build/client.exe
 
 
