@@ -2,11 +2,17 @@
 #include "server.c"
 #undef SERVER_C
 
-int client_fun(struct client_info *info, void *data, size_t len)
+#include <string.h>
+
+int client_fun(struct client_info *info, void *data, int len)
 {
-    printf("client[%s]: \n", info->id);
+    printf("msglen: %i\n", len);
+    printf("client[%s]: ", info->id);
     for(int i = 0; i < len; i++)
         printf("%c", ((char*)data)[i]);
+    if(strcmp(((char*)data), "disconnect") == 0)
+        return 0;
+    printf("\n");
 
     return 1;
 }

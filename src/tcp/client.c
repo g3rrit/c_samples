@@ -17,15 +17,28 @@
 #include <unistd.h>
 #endif
 
+#define THREAD_C
+#include "thread.c"
+#undef THREAD_C
+
 struct client
 {
     struct sockaddr_in address;
     int socket_id;
+
+    struct thread c_thread;
+    int alive;
+
+    void *ref;
+
+    int (*fun)(struct client *this, void *data, int len);
 };
+
+void client_init(struct client *this, void *ref, int (*fun)(struct client *this, void *data, int len));
 
 int client_connect(struct client *this, char *address, int port);
 
-int client_send(struct client *this, char *buffer, size_t len);
+int client_send(struct client *this, char *buffer, int len);
 
 int client_delete(struct client *this);
 
@@ -37,13 +50,37 @@ int client_delete(struct client *this);
 #include "stdio.h"
 #include "string.h"
 
+void *client_thread_fun(struct client *this)
+{
+    char buffer[100];
+    int msglen;
+    this->alive = 1;
+    while(this->alive)
+    {
+        msglen = recv(this->socket_id, buffer, sizeof(char) * 100, 0);
+
+        if(msglen > 0)
+            this->alive = this->fun(this, buffer, msglen);
+        else
+            this->alive = 0;
+    }
+
+    return 0;
+}
+
+void client_init(struct client *this, void *ref, int (*fun)(struct client *this, void *data, int len))
+{
+    this->ref = ref;
+    this->fun = fun;
+}
+
 int client_connect(struct client *this, char *address, int port)
 {
     
     int error;
 #ifdef WINDOWS
     WSADATA wsa; 
-    if(SAStartup(MAKEWORD(2,2), &wsa))
+    if(WSAStartup(MAKEWORD(2,2), &wsa))
     {
        printf("Failed to initialize WSA error: %d\n", WSAGetLastError());
        return -1;
@@ -80,11 +117,13 @@ int client_connect(struct client *this, char *address, int port)
         return -3;
     }
 
+    thread_init(&(this->c_thread));
+    thread_create(&(this->c_thread), 0, &client_thread_fun, this);
 
     return 1;
 }
 
-int client_send(struct client *this, char *buffer, size_t len)
+int client_send(struct client *this, char *buffer, int len)
 {
     int error = send(this->socket_id, buffer, len, 0);
     if(error < 0)
@@ -92,16 +131,22 @@ int client_send(struct client *this, char *buffer, size_t len)
         printf("error sending %i\n", error);
         return -1;
     }
+
+    /*
     char rbuffer[200];
     int rlen = recv(this->socket_id, rbuffer, 200, 0);
     for(int i = 0; i < 200; i++)
         printf("%c", rbuffer[i]);
+        */
 
     return 1;
 }
 
 int client_delete(struct client *this)
 {
+    void *retval = 0;
+    thread_join(&(this->c_thread), retval);
+
     close(this->socket_id);
     return 1;
 }

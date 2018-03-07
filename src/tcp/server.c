@@ -29,7 +29,8 @@ struct client_info
     char *id;
     void *ref;
     //if this function returns 0 the connetion closes
-    int (*fun)(struct client_info *info, void *data, size_t len);
+    int (*fun)(struct client_info *info, void *data, int len);
+    int alive;
 
     int socket_id;
     struct sockaddr_in address;
@@ -50,7 +51,7 @@ int server_init(struct server *this, char *address, int port);
 
 struct client_info *server_listen(struct server *this);
 
-void server_add_client(struct server *this, struct client_info *client, char *id, void *ref, int (*fun)(struct client_info *info, void *data, size_t len));
+void server_add_client(struct server *this, struct client_info *client, char *id, void *ref, int (*fun)(struct client_info *info, void *data, int len));
 
 void server_remove_client(struct server *this, char *id);
 
@@ -67,14 +68,17 @@ int server_delete(struct server *this);
 
 void *client_thread_fun(struct client_info *info)
 {
-    int retval = 1;
-    void *buffer;
-    size_t msglen = 0;
-    while(retval)
+    char buffer[100];
+    int msglen = 0;
+    info->alive = 1;
+    while(info->alive)
     {
         //int msglen = recv(socket_c_id, buffer, 200, 0);
-        msglen = recv(info->socket_id, buffer, 1000, 0);
-        retval = info->fun(info, buffer, msglen);
+        msglen = recv(info->socket_id, buffer, sizeof(char) * 100, 0);
+        if(msglen > 0)
+            info->alive = info->fun(info, buffer, msglen);
+        else
+            info->alive = 0;
     }
 
     vector_push_back(&(info->s_info->join_vec), info);
@@ -148,6 +152,8 @@ struct client_info *server_listen(struct server *this)
     int addrlen = sizeof(struct sockaddr);
     struct client_info *temp_client = malloc(sizeof(struct client_info));
 
+    printf("accepting connections\n");
+
     temp_client->socket_id = accept(this->socket_id, (struct sockaddr*) &(temp_client->address), &addrlen);
 
     printf("accepted connection\n");
@@ -166,9 +172,11 @@ struct client_info *server_listen(struct server *this)
 
     //reinit join vector
     vector_delete(&(this->join_vec));
+
+    return temp_client;
 }
 
-void server_add_client(struct server *this, struct client_info *client, char *id, void *ref, int (*fun)(struct client_info *info, void *data, size_t len))
+void server_add_client(struct server *this, struct client_info *client, char *id, void *ref, int (*fun)(struct client_info *info, void *data, int len))
 {
     client->fun = fun;
     client->id = id;
@@ -178,12 +186,18 @@ void server_add_client(struct server *this, struct client_info *client, char *id
     map_push_back(&(this->c_map), id, client);
 
     thread_init(&(client->c_thread));
-    thread_create(&(client->c_thread), 0, &client_thread_fun, 0);
+    thread_create(&(client->c_thread), 0, &client_thread_fun, client);
 }
 
 void server_remove_client(struct server *this, char *id)
 {
+    struct client_info *info = map_get(&(this->c_map), id);
+    info->alive = 0;
+    void *retv = 0;
+    thread_join(&(info->c_thread), retv);
+
     map_remove(&(this->c_map), id);
+    discard_client(info);
 }
 
 void discard_client(struct client_info *client)
@@ -196,7 +210,11 @@ int server_delete(struct server *this)
 {
     for(int i = 0; i < this->c_map.size; i++)
     {
-        discard_client(map_at(&(this->c_map), i));
+        struct client_info *info = map_at(&(this->c_map), i);
+        info->alive = 0;
+        void *retv = 0;
+        thread_join(&(info->c_thread), retv);
+        discard_client(info);
     }
      
     map_delete(&(this->c_map));
