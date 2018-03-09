@@ -8,6 +8,8 @@ double f_sawtooth(double x);
 
 double f_pow2(double x);
 
+double f_pow2_inv(double x);
+
 double f_pow(double x, double p);
 
 double f_exp(double x);
@@ -20,6 +22,14 @@ double f_pulse_v(double x, double v);
 
 double f_triangle(double x);
 
+double f_random(double x);
+
+double f_const_1(double x);
+
+double f_const_0(double x);
+
+double f_const_neg1(double x);
+
 //returns val between 0 and 1 with T = 1
 double f_lin(double x);
 
@@ -29,6 +39,7 @@ double f_lin(double x);
 #ifndef WAVE_C
 
 #include <math.h>
+#include <stdlib.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265359
@@ -70,6 +81,11 @@ double f_pow2(double x)
     return 2 * pow(f_lin(x), 2) - 1;
 }
 
+double f_pow2_inv(double x)
+{
+    return 2 * pow(1 - f_lin(x), 2) - 1;
+}
+
 double f_pow(double x, double p)
 {
     return 2 * pow(f_lin(x), p) - 1;
@@ -104,9 +120,29 @@ double f_pulse_v(double x, double v)
 double f_triangle(double x)
 {
     if(f_lin(x) < 0.5f)
-        return f_sawtooth(x);
+        return 2 * f_sawtooth(x) + 1;
     else
-        return -f_sawtooth(x);
+        return -2 * f_sawtooth(x) + 1;
+}
+
+double f_random(double x)
+{
+    return (double) rand()/RAND_MAX;
+}
+
+double f_const_1(double x)
+{
+    return 1;
+}
+
+double f_const_0(double x)
+{
+    return 0;
+}
+
+double f_const_neg1(double x)
+{
+    return -1;
 }
 
 #endif
