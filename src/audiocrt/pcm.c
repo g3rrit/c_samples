@@ -6,13 +6,19 @@ int pcm_write_txt(char *fname, double *data, int size);
 
 int pcm_write_s16_le(char *fname, double *data, int size);
 
-int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x));
+int pcm_create(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x));
 
 int pcm_create_frequenzy_tone(double **res, double *input, int isize, int samplerate, double duration, double (*fun)(double x));
 
 void pcm_scale_const(double *res, int size, double amplitude);
 
 void pcm_scale(double *data, int size, double (*fun)(double x));
+
+void pcm_scale_unit(double *data, int size);
+
+void pcm_add(double *dest, int dest_size, double *src, int src_size, int offset);
+
+void pcm_mult(double *dest, int dest_size, double *src, int src_size, int offset);
 
 int wav_write_s16_le(char *fname, double *data, int size, int samplerate);
 
@@ -167,7 +173,7 @@ int wav_write_s16_le(char *fname, double *data, int size, int samplerate)
 
 //note:     When samplerate is to low res array is gonna be messed up
 //          because the function is not gonna go to the maximum
-int pcm_create_tone(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x))
+int pcm_create(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x))
 {
     int malsize = sizeof(double) * samplerate * duration;
     *res = malloc(malsize);
@@ -227,6 +233,35 @@ void pcm_scale(double *data, int size, double (*fun)(double x))
     }
 
     pcm_scale_const(data, size, 1./biggest_val);
+}
+
+void pcm_scale_unit(double *data, int size)
+{
+    double biggest_val = 0;
+    for(int i = 0; i < size; i++)
+    {
+        if(data[i] > biggest_val)
+            biggest_val = data[i];
+    }
+
+    if(biggest_val != 1)
+        pcm_scale_const(data, size, 1./biggest_val);
+}
+
+void pcm_add(double *dest, int dest_size, double *src, int src_size, int offset)
+{
+    for(int i = offset; i < offset+src_size; i++)
+        dest[i] += src[i];
+
+    pcm_scale_unit(dest, dest_size);
+}
+
+void pcm_mult(double *dest, int dest_size, double *src, int src_size, int offset)
+{
+    for(int i = offset; i < offset+src_size; i++)
+        dest[i] *= src[i];
+
+    pcm_scale_unit(dest, dest_size);
 }
 
 

@@ -17,35 +17,35 @@
 #include "transform.c"
 #undef TRANSFORM_C
 
+#define AUD_FILE_PCM "output/aud.pcm"
+#define AUD_FILE_WAV "output/audwav.wav"
+#define FREQ_FILE_TXT "output/freq.txt"
+#define AUD_FILE_TXT "output/audwave.txt"
+
 int main()
 {
-    char *fname = malloc(9);
-    strcpy(fname, "0aud.pcm");
-    fname[9] = 0;
-
-    FILE *tfile = fopen("tf.txt", "w");
-    for(double l = 0; l < 1000; l += 1./100)
-    {
-        fprintf(tfile, "%f\n", f_sawtooth(l));
-    }
-    fclose(tfile);
 
     double *sarr;
-    /*
-    pcm_create_tone(&sarr, 800, 16000, 1 , 15000, &f_sin);
-    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
-    free(sarr);
-    fname[0]++;
-    */
+    double *farr;
 
-    int size_of_arr = pcm_create_tone(&sarr, 800, 16000, 5, &f_sin);
-    printf("sizeof array is %i\n", size_of_arr);
+    /* SIN TONE 800 hz sample rate: 16000 duration: 5
+    int size_of_arr = pcm_create(&sarr, 800, 16000, 5, &f_sin);
     pcm_scale_const(sarr, size_of_arr, 15000);
-    //pcm_write_s16_le(fname, sarr, 8000);
+    pcm_write_s16_le(AUD_FILE_PCM, sarr, size_of_arr);
     wav_write_s16_le("twav.wav", sarr, size_of_arr, 16000);
     free(sarr);
-    fname[0]++;
+    */
 
+    ///* TRIANGLE TONE 800 hz sample rate: 16000 duration: 5
+    int size_of_arr = pcm_create(&sarr, 800, 16000, 5, &f_sin);
+    pcm_scale_const(sarr, size_of_arr, 15000);
+    pcm_write_s16_le(AUD_FILE_PCM, sarr, size_of_arr);
+    wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 16000);
+    free(sarr);
+    //*/
+
+
+    /*
     double farr[16385];
     for(int i = 0; i < 16385; i++)
         farr[i] = 0;
@@ -61,34 +61,8 @@ int main()
     pcm_write_txt("fwavtf.txt", farr, 16385);
     pcm_write_txt("fwavt.txt", sarr, size_of_arr);
     free(sarr);
-
-
-
-    /*
-    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_exp);
-    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
-    free(sarr);
-    fname[0]++;
-
-    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_pow2);
-    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
-    free(sarr);
-    fname[0]++;
-
-    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_sqrt);
-    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
-    free(sarr);
-    fname[0]++;
-
-    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_pulse);
-    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
-    free(sarr);
-    fname[0]++;
-
-    pcm_create_tone(&sarr, 800, 8000, 1 , 15000, &f_triangle);
-    wav_write_s16_le(fname, sarr, size_of_arr, 16000);
-    free(sarr);
     */
+
 
     //Encoding:     Signed 16-bit PCM
     //Byte Order:   Little-endian
