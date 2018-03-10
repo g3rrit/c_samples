@@ -10,6 +10,8 @@ int pcm_create(double **res, int frequenzy, int samplerate, double duration, dou
 
 void pcm_fill(double *res, int start_off, int end_off, double (*fun)(double x));
 
+void pcm_fill_f(double *res, double (*fun)(double x), int start_off_x, int end_off_x, int start_off_y, int end_off_y);
+
 int pcm_create_frequenzy_tone(double **res, double *input, int isize, int samplerate, double duration, double (*fun)(double x));
 
 void pcm_scale_const(double *res, int size, double amplitude);
@@ -200,6 +202,18 @@ void pcm_fill(double *res, int start_off, int end_off, double (*fun)(double x))
     for(double i = 0; i < 1; i += dt)
     {
         res[count] = fun(i);
+        count++;
+    }
+}
+
+void pcm_fill_f(double *res, double (*fun)(double x), int start_off_x, int end_off_x, int start_off_y, int end_off_y)
+{
+    int count = start_off_x;
+    double dt = 1./(end_off_x-start_off_x);
+    double scale_f = ((double)(end_off_y-start_off_y))/2;
+    for(double i = 0; i < 1; i += dt)
+    {
+        res[count] = scale_f * fun(i) + start_off_y;
         count++;
     }
 }

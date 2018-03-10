@@ -59,7 +59,7 @@ int main()
     free(sarr);
     */
 
-    /*ORGEL OLD
+    ///*ORGEL OLD
     farr = malloc(sizeof(double) * 16385);
     for(int i = 0; i < 16285; i++)
         farr[i] = 0;
@@ -68,14 +68,14 @@ int main()
     {
         farr[i] = 1;
     }
-    int size_of_arr = pcm_create_frequenzy_tone(&sarr, farr, 16385, 64000, 3, &f_sin);
+    int size_of_arr = pcm_create_frequenzy_tone(&sarr, farr, 16385, 32000, 3, &f_sin);
     pcm_scale_const(sarr ,size_of_arr, 30000);
     pcm_write_txt(FREQ_FILE_TXT, farr, 16385);
     pcm_write_txt(AUD_FILE_TXT, sarr, size_of_arr);
-    wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 64000);
+    wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 32000);
     free(farr);
     free(sarr);
-    */
+    //*/
 
     /* ORGEL NEW
     int size_of_arr = pcm_create(&sarr, 800, 64000, 5, &f_const_0);
@@ -109,7 +109,7 @@ int main()
     free(sin_arr);
     */
 
-    ///* RAND
+    /* RAND
     int size_of_arr = pcm_create(&sarr, 100, 64000, 5, &f_random);
     double *sin_arr;
     pcm_create(&sin_arr, 200, 64000, 5, &f_sin);
@@ -120,7 +120,40 @@ int main()
     wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 32000);
     free(sarr);
     free(sin_arr);
-    //*/
+    */
+
+    /* BASS TEST 2
+    int size_of_arr = pcm_create(&sarr, 100, 64000, 5, &f_sawtooth);
+    double *sin_arr = malloc(sizeof(double) * size_of_arr);
+    pcm_fill_f(sin_arr, &f_sin, 0, size_of_arr/5, 0, 1);
+    pcm_fill_f(sin_arr, &f_sawtooth, size_of_arr/5, (2*size_of_arr)/5, 0, 1);
+    pcm_fill_f(sin_arr, &f_triangle, (2*size_of_arr)/5, (3*size_of_arr)/5, 0, 1);
+    pcm_fill_f(sin_arr, &f_exp, (3*size_of_arr)/5, (4*size_of_arr)/5, 0, 1);
+    pcm_fill_f(sin_arr, &f_pow2, (4*size_of_arr)/5, size_of_arr, 0, 1);
+    pcm_mult(sarr, size_of_arr, sin_arr, size_of_arr, 0);
+    pcm_scale_unit(sarr, size_of_arr);
+    pcm_scale_const(sarr, size_of_arr, 15000);
+    pcm_write_txt(FREQ_FILE_TXT, sin_arr, size_of_arr);
+    pcm_write_txt(AUD_FILE_TXT, sarr, size_of_arr);
+    wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 64000);
+    free(sarr);
+    free(sin_arr);
+    */
+
+    /*
+    int size_of_arr = pcm_create(&sarr, 300, 64000, 5, &f_pow2);
+    double *sin_arr;
+    pcm_create(&sin_arr, 600, 64000, 5, &f_sin);
+    pcm_add(sarr, size_of_arr, sin_arr, size_of_arr, 0);
+    pcm_scale_unit(sarr, size_of_arr);
+    pcm_scale_const(sarr, size_of_arr, 30000);
+    pcm_write_txt(AUD_FILE_TXT, sarr, size_of_arr);
+    wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 32000);
+    free(sarr);
+    free(sin_arr);
+    */
+
+
 
     /*
     double farr[16385];
