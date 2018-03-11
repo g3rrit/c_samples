@@ -44,7 +44,7 @@ int main()
     free(sarr);
     */
 
-    /* TRAINGLE FREQU TONE 800 hz sample rate: 16000 duration: 5
+    ///* TRAINGLE FREQU TONE 800 hz sample rate: 16000 duration: 5
     farr = malloc(sizeof(double) * 1000);
     pcm_fill(farr, 0, 500, &f_pow2);
     pcm_fill(farr, 500, 1000, &f_pow2_inv);
@@ -57,9 +57,9 @@ int main()
     wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 16000);
     free(farr);
     free(sarr);
-    */
+    //*/
 
-    ///*ORGEL OLD
+    /*ORGEL OLD
     farr = malloc(sizeof(double) * 16385);
     for(int i = 0; i < 16285; i++)
         farr[i] = 0;
@@ -75,7 +75,7 @@ int main()
     wav_write_s16_le(AUD_FILE_WAV, sarr, size_of_arr, 32000);
     free(farr);
     free(sarr);
-    //*/
+    */
 
     /* ORGEL NEW
     int size_of_arr = pcm_create(&sarr, 800, 64000, 5, &f_const_0);
