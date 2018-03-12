@@ -2,31 +2,41 @@
 #ifndef PCM_H
 #define PCM_H
 
+// ----- FILE CREATION -----
+
 int pcm_write_txt(char *fname, double *data, int size);
 
 int pcm_write_s16_le(char *fname, double *data, int size);
 
-int pcm_create(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x));
+int wav_write_s16_le(char *fname, double *data, int size, int samplerate);
 
-void pcm_fill(double *res, int start_off, int end_off, double (*fun)(double x));
+// ----- FILE CREATION -----
 
-void pcm_fill_f(double *res, double (*fun)(double x), int start_off_x, int end_off_x, int start_off_y, int end_off_y);
+// ----- ARRAY CREATION -----
 
-int pcm_create_frequenzy_tone(double **res, double *input, int isize, int samplerate, double duration, double (*fun)(double x));
+int pcm_create(double *res, int frequenzy, int samplerate, double duration, double (*fun)(double x));
 
-void pcm_scale_const(double *res, int size, double amplitude);
+int pcm_get_size(int samplerate, double duration);
 
-void pcm_scale(double *data, int size, double (*fun)(double x));
+void pcm_add_f(double *res, int start_off_x, int end_off_x, int start_off_y, int end_off_y, double (*fun)(double x));
+
+void pcm_mult_f(double *res, int start_off_x, int end_off_x, int start_off_y, int end_off_y, double (*fun)(double x));
+
+void pcm_add(double *dest, double *src, int off_dest, int s_off_src, int e_off_src);
+
+void pcm_mult(double *dest, double *src, int off_dest, int s_off_src, int e_off_src);
+
+//
+int pcm_create_frequenzy_tone(double *res, double *input, int isize, int samplerate, double duration, double (*fun)(double x));
+
+//where input[i][0] is the amplitude and input[i][1] is the frequenzy
+int pcm_create_freq_array(double *res, double *input, int isize, int samplerate, double duration, double (*fun)(double x));
+
+void pcm_scale(double *res, int size, double amplitude);
 
 void pcm_scale_unit(double *data, int size);
 
-void pcm_add_f(double *dest, int size, double (*fun)(double x));
-
-void pcm_add(double *dest, int dest_size, double *src, int src_size, int offset);
-
-void pcm_mult(double *dest, int dest_size, double *src, int src_size, int offset);
-
-int wav_write_s16_le(char *fname, double *data, int size, int samplerate);
+// ----- ARRAY CREATION -----
 
 //---------- endianess ---------- 
 int is_big_endian();
@@ -179,49 +189,63 @@ int wav_write_s16_le(char *fname, double *data, int size, int samplerate)
 
 //note:     When samplerate is to low res array is gonna be messed up
 //          because the function is not gonna go to the maximum
-int pcm_create(double **res, int frequenzy, int samplerate, double duration, double (*fun)(double x))
+int pcm_create(double *res, int frequenzy, int samplerate, double duration, double (*fun)(double x))
 {
-    int malsize = sizeof(double) * samplerate * duration;
-    *res = malloc(malsize);
-
     int i = 0;
     double t = 0;
     for(t = 0; t < duration; t += 1./((double)samplerate))
     {
-        (*res)[i] = fun(t * frequenzy);
+        res[i] = 2 * fun(t * frequenzy) - 1;
         i++;
     }
 
     return samplerate * duration;
 }
 
-void pcm_fill(double *res, int start_off, int end_off, double (*fun)(double x))
+int pcm_get_size(int samplerate, double duration)
 {
-    int count = start_off;
-    double dt = 1./(end_off-start_off);
-    for(double i = 0; i < 1; i += dt)
-    {
-        res[count] = fun(i);
-        count++;
-    }
+    return samplerate * duration;
 }
 
-void pcm_fill_f(double *res, double (*fun)(double x), int start_off_x, int end_off_x, int start_off_y, int end_off_y)
+void pcm_add_f(double *res, int start_off_x, int end_off_x, int start_off_y, int end_off_y, double (*fun)(double x))
 {
     int count = start_off_x;
     double dt = 1./(end_off_x-start_off_x);
     double scale_f = ((double)(end_off_y-start_off_y))/2;
     for(double i = 0; i < 1; i += dt)
     {
-        res[count] = scale_f * fun(i) + start_off_y;
+        res[count] += scale_f * fun(i) + start_off_y;
         count++;
     }
 }
 
-int pcm_create_frequenzy_tone(double **res, double *input, int isize, int samplerate, double duration, double (*fun)(double x))
+void pcm_mult_f(double *res, int start_off_x, int end_off_x, int start_off_y, int end_off_y, double (*fun)(double x))
 {
-    *res = malloc(sizeof(double) * samplerate * duration);
+    int count = start_off_x;
+    double dt = 1./(end_off_x-start_off_x);
+    double scale_f = ((double)(end_off_y-start_off_y))/2;
+    for(double i = 0; i < 1; i += dt)
+    {
+        res[count] *= scale_f * fun(i) + start_off_y;
+        count++;
+    }
+}
 
+void pcm_add(double *dest, double *src, int off_dest, int s_off_src, int e_off_src)
+{
+    for(int i = s_off_src; i < e_off_src; i++)
+        dest[i + off_dest] += src[i];
+}
+
+void pcm_mult(double *dest, double *src, int off_dest, int s_off_src, int e_off_src)
+{
+    for(int i = s_off_src; i < e_off_src; i++)
+        dest[i + off_dest] *= src[i];
+}
+
+
+int pcm_create_frequenzy_tone(double *res, double *input, int isize, int samplerate, double duration, double (*fun)(double x))
+{
     double sum_of_all = 0;
     for(int i = 0; i < isize; i++)
         sum_of_all += input[i];
@@ -238,7 +262,7 @@ int pcm_create_frequenzy_tone(double **res, double *input, int isize, int sample
         for(int i = 0; i < isize; i++)
             fx += (input[i] * fun(t * i))/sum_of_all;
 
-        (*res)[count] = fx;
+        res[count] = fx;
 
         count++;
     }
@@ -248,24 +272,38 @@ int pcm_create_frequenzy_tone(double **res, double *input, int isize, int sample
     return array_size;
 }
 
-void pcm_scale_const(double *res, int size, double amplitude)
+int pcm_create_freq_array(double *res, double *input, int isize, int samplerate, double duration, double (*fun)(double x))
+{
+    double sum_of_all = 0;
+    for(int i = 0; i < isize; i++)
+        sum_of_all += input[i * 2];
+
+    int array_size = samplerate * duration;
+
+    int count = 0;
+    for(double t = 0; t < duration; t+= 1./(double) samplerate)
+    {
+        printf("sound(%i - %i)\r", count, array_size);
+
+        double fx = 0;
+        for(int i = 0; i < isize; i++)
+            fx += (2 * input[i * 2] * fun(t * input[i * 2 + 1]) - 1)/sum_of_all;
+
+        res[count] = fx;
+
+        count++;
+    }
+
+    printf("\n");
+
+    return array_size;
+
+}
+
+void pcm_scale(double *res, int size, double amplitude)
 {
     for(int i = 0; i < size; i++)
         res[i] *= amplitude;
-}
-
-void pcm_scale(double *data, int size, double (*fun)(double x))
-{
-    double biggest_val = 0;
-    for(int i = 0; i < size; i++)
-    {
-        data[i] *= fun(((double) i)/((double)size));
-
-        if(data[i] > biggest_val)
-            biggest_val = data[i];
-    }
-
-    pcm_scale_const(data, size, 1./biggest_val);
 }
 
 void pcm_scale_unit(double *data, int size)
@@ -278,31 +316,10 @@ void pcm_scale_unit(double *data, int size)
     }
 
     if(biggest_val != 1)
-        pcm_scale_const(data, size, 1./biggest_val);
+        pcm_scale(data, size, 1./biggest_val);
 }
 
-void pcm_add_f(double *dest, int size, double (*fun)(double x))
-{
-    int count = 0;
-    double dt = 1./size;
-    for(double i = 0; i < 1; i += dt)
-    {
-        dest[count] += fun(i);
-        count++;
-    }
-}
 
-void pcm_add(double *dest, int dest_size, double *src, int src_size, int offset)
-{
-    for(int i = offset; i < offset+src_size; i++)
-        dest[i] += src[i];
-}
-
-void pcm_mult(double *dest, int dest_size, double *src, int src_size, int offset)
-{
-    for(int i = offset; i < offset+src_size; i++)
-        dest[i] *= src[i];
-}
 
 //---------- endianess ---------- 
 
