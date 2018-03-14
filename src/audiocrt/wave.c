@@ -68,43 +68,43 @@ inline double f_lin(double x)
 
 inline double f_sin(double x)
 {
-    return sin(2 * M_PI * x);
+    return sin(2 * M_PI * x)/2 + 0.5;
 }
 
 inline double f_sawtooth(double x)
 {
-    return 2 * f_lin(x) - 1;
+    return f_lin(x);
 }
 
 double f_pow2(double x)
 {
-    return 2 * pow(f_lin(x), 2) - 1;
+    return pow(f_lin(x), 2);
 }
 
 double f_pow2_inv(double x)
 {
-    return 2 * pow(1 - f_lin(x), 2) - 1;
+    return pow(1 - f_lin(x), 2);
 }
 
 double f_pow(double x, double p)
 {
-    return 2 * pow(f_lin(x), p) - 1;
+    return pow(f_lin(x), p);
 }
 
 inline double f_exp(double x)
 {
-    return 2 * (M_EI * exp(f_lin(x) - 1) - M_EI * M_IE) - 1;
+    return (M_EI * exp(f_lin(x) - 1) - M_EI * M_IE);
 }
 
 double f_sqrt(double x)
 {
-    return 2 * sqrt(f_lin(x)) - 1;
+    return sqrt(f_lin(x));
 }
 
 double f_pulse(double x)
 {
     if(f_lin(x) < 0.5f)
-        return -1;
+        return 0;
     else
         return 1;
 }
@@ -112,7 +112,7 @@ double f_pulse(double x)
 double f_pulse_v(double x, double v)
 {
     if(f_lin(x) < v)
-        return -1;
+        return 0;
     else
         return 1;
 }
@@ -120,9 +120,9 @@ double f_pulse_v(double x, double v)
 double f_triangle(double x)
 {
     if(f_lin(x) < 0.5f)
-        return 2 * f_sawtooth(x) + 1;
+        return 2 * f_sawtooth(x);
     else
-        return -2 * f_sawtooth(x) + 1;
+        return -2 * f_sawtooth(x);
 }
 
 double f_random(double x)
