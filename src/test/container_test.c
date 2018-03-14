@@ -4,6 +4,18 @@
 #include "container.c"
 #undef CONTAINER_C
 
+#define LIST_C
+#include "list.c"
+#undef LIST_C
+
+#define MAP_C
+#include "map.c"
+#undef MAP_C
+
+#define VECTOR_C
+#include "vector.c"
+#undef VECTOR_C
+
 #include "snow.h"
 
 void *v_for_each(int data, void *ref, struct vector_info *info)
@@ -581,6 +593,144 @@ describe(container,
 
 
     });
+
+    subdesc(container, 
+    {
+        it("push_front", 
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_front(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,0) , i);
+            }        
+            asserteq(mlist.size, 10);
+            container_delete(&mlist);
+        });
+
+        it("push_back", 
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_back(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,9) , i);
+            }        
+            asserteq(mlist.size, 10);
+            container_delete(&mlist);
+        });
+
+        it("delete", 
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_front(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,0) , i);
+            } 
+            container_delete(&mlist);
+            assert(!mlist.size);
+            assert(!mlist.head);
+            assert(!mlist.tail);
+            container_delete(&mlist);
+        });
+
+        it("pop_back",
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_back(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,9) , i);
+            }
+            for(int i = 9; i >= 0; i--)
+            {
+                asserteq(container_pop_back(&mlist), i);
+            }
+            assert(!mlist.size);
+            assert(!mlist.head);
+            assert(!mlist.tail);
+            container_delete(&mlist);
+        });
+
+        it("pop_front",
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_back(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,9) , i);
+            }
+            for(int i = 0; i < 10; i++)
+            {
+                asserteq(container_pop_front(&mlist), i);
+            }
+            assert(!mlist.size);
+            assert(!mlist.head);
+            assert(!mlist.tail);
+            container_delete(&mlist);
+        });
+
+        it("at",
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_back(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,9) , i);
+            }
+            for(int i = 0; i < 10; i++)
+            {
+                asserteq(container_at(&mlist, i), i);
+            }
+            asserteq(mlist.size, 10);
+            assert(mlist.head);
+            assert(mlist.tail);
+            container_delete(&mlist);
+        });
+
+        it("remove_at",
+        {
+            struct list mlist;
+            list_init(&mlist);
+            for(int i = 0; i < 10; i++)
+            {
+                container_push_back(&mlist, i);
+                asserteq(mlist.size, i+1);
+                asserteq(container_at(&mlist,9) , i);
+            }
+            asserteq(container_remove_at(&mlist, 0), 0);
+            asserteq(container_remove_at(&mlist, 8), 9);
+            asserteq(container_remove_at(&mlist, 3), 4);
+            asserteq(container_remove_at(&mlist, 5), 7);
+            asserteq(container_remove_at(&mlist, 4), 6);
+            asserteq(container_remove_at(&mlist, 4), 8);
+            asserteq(container_remove_at(&mlist, 1), 2);
+            asserteq(container_remove_at(&mlist, 0), 1);
+            asserteq(container_remove_at(&mlist, 1), 5);
+            asserteq(container_remove_at(&mlist, 0), 3);
+
+            asserteq(mlist.size, 0);
+            assert(!mlist.head);
+            assert(!mlist.tail);
+            container_delete(&mlist);
+        });
+
+    });
+
+
 });
 
 snow_main();
