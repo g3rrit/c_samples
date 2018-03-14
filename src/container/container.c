@@ -7,9 +7,7 @@
 struct list_node
 {
     struct list_node *next;
-#ifndef S_LINKED
     struct list_node *prev;
-#endif
     void *data;
 };
 
@@ -33,14 +31,15 @@ void list_init(struct list *this);
 void list_delete(struct list *this);
 void list_delete_all(struct list *this);
 
-void list_push_front(struct list *this, void *data);
-void list_push_back(struct list *this, void *data);
+struct list_node *list_push_front(struct list *this, void *data);
+struct list_node *list_push_back(struct list *this, void *data);
 
 void *list_pop_front(struct list *this);
 void *list_pop_back(struct list *this);
 
 void *list_at(struct list *this, int x);
 void *list_remove_at(struct list *this, int x);
+void *list_remove_node(struct list *this, struct list_node *node);
 
 //if fun returns something other than 0 stop
 //returns 0 if all objects where iterated
@@ -202,37 +201,32 @@ void list_delete_all(struct list *this)
     this->size = 0;
 }
 
-void list_push_front(struct list *this, void *data)
+struct list_node *list_push_front(struct list *this, void *data)
 {
     struct list_node *entry = malloc(sizeof(struct list_node));
 
     entry->data = data;
     entry->next = this->head;
-#ifndef S_LINKED
     entry->prev = 0;
-#endif
 
-#ifndef S_LINKED
     if(this->head)
         this->head->prev = entry;
-#endif
 
     if(!this->tail)
         this->tail = entry;
     this->size++;
 
     this->head = entry; 
+    return entry;
 }
 
-void list_push_back(struct list *this, void *data)
+struct list_node *list_push_back(struct list *this, void *data)
 {
     struct list_node *entry = malloc(sizeof(struct list_node)); 
 
     entry->data = data;
     entry->next = 0;
-#ifndef S_LINKED
     entry->prev = this->tail;
-#endif
 
     if(this->tail)
         this->tail->next = entry;
@@ -242,6 +236,7 @@ void list_push_back(struct list *this, void *data)
     this->size++;
 
     this->tail = entry;
+    return entry;
 }
 
 void *list_pop_front(struct list *this)
@@ -255,9 +250,7 @@ void *list_pop_front(struct list *this)
     if(entry->next)
     {
         this->head = entry->next;
-#ifndef S_LINKED
         this->head->prev = 0;
-#endif
     }
     else
     {
@@ -281,9 +274,7 @@ void *list_pop_back(struct list *this)
     if(entry->prev)
     {
         this->tail = entry->prev;
-#ifndef S_LINKED
         this->tail->next = 0;
-#endif
     }
     else
     {
@@ -303,16 +294,13 @@ void *list_at(struct list *this, int x)
 
     struct list_node *entry;
     //walk forward if x < size/2
-#ifndef S_LINKED
     if(x < this->size/2)
     {
-#endif
         entry = this->head;
         while(entry->next && --x >= 0)
         {
             entry = entry->next;     
         }
-#ifndef S_LINKED
     }
     else
     {
@@ -325,7 +313,6 @@ void *list_at(struct list *this, int x)
             entry = entry->prev;
         }
     }
-#endif
 
     return entry->data;
 }
@@ -339,10 +326,8 @@ void *list_remove_at(struct list *this, int x)
 
     struct list_node **entry;
     //walk forward if x < size/2
-#ifndef S_LINKED
     if(x < this->size/2)
     {
-#endif
         entry = &this->head;
         while((*entry)->next && --x >= 0)
         {
@@ -364,7 +349,6 @@ void *list_remove_at(struct list *this, int x)
         *entry = (*entry)->next;
 
         free(free_entry);
-#ifndef S_LINKED
     }
     else
     {
@@ -393,7 +377,6 @@ void *list_remove_at(struct list *this, int x)
 
         free(free_entry);
     }
-#endif
     this->size--;
 
     if(!this->size)
@@ -403,6 +386,25 @@ void *list_remove_at(struct list *this, int x)
     }
     
     return data;
+}
+
+void *list_remove_node(struct list *this, struct list_node *node)
+{
+    if(!node->prev)
+        this->head = node->next;
+
+    if(!node->next)
+        this->tail = node->prev;
+
+    if(node->next && node->prev)
+    {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+
+    this->size--;
+
+    return node->data;
 }
 
 void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list_info *info), void *ref)

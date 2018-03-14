@@ -70,6 +70,7 @@ describe(container,
                 asserteq(list_at(&mlist,0) , i);
             }        
             asserteq(mlist.size, 10);
+            list_delete(&mlist);
         });
 
         it("push_back", 
@@ -83,6 +84,7 @@ describe(container,
                 asserteq(list_at(&mlist,9) , i);
             }        
             asserteq(mlist.size, 10);
+            list_delete(&mlist);
         });
 
         it("list_delete", 
@@ -99,6 +101,7 @@ describe(container,
             assert(!mlist.size);
             assert(!mlist.head);
             assert(!mlist.tail);
+            list_delete(&mlist);
         });
 
         it("pop_back",
@@ -118,6 +121,7 @@ describe(container,
             assert(!mlist.size);
             assert(!mlist.head);
             assert(!mlist.tail);
+            list_delete(&mlist);
         });
 
         it("pop_front",
@@ -137,6 +141,7 @@ describe(container,
             assert(!mlist.size);
             assert(!mlist.head);
             assert(!mlist.tail);
+            list_delete(&mlist);
         });
 
         it("at",
@@ -156,6 +161,7 @@ describe(container,
             asserteq(mlist.size, 10);
             assert(mlist.head);
             assert(mlist.tail);
+            list_delete(&mlist);
         });
 
         it("remove_at",
@@ -182,6 +188,34 @@ describe(container,
             asserteq(mlist.size, 0);
             assert(!mlist.head);
             assert(!mlist.tail);
+            list_delete(&mlist);
+        });
+
+        it("remove_node",
+        {
+            struct list mlist;
+            list_init(&mlist);
+            struct list_node *node0 = list_push_back(&mlist, 0);
+            list_push_back(&mlist, 1);
+            list_push_back(&mlist, 2);
+            struct list_node *node = list_push_back(&mlist, 3);
+            list_push_back(&mlist, 4);
+            list_push_back(&mlist, 5);
+            list_push_back(&mlist, 6);
+            struct list_node *node1 = list_push_back(&mlist, 7);
+            asserteq(mlist.size, 8);
+
+            list_remove_node(&mlist, node);
+            asserteq(list_at(&mlist, 3), 4);
+            asserteq(mlist.size, 7);
+
+            list_remove_node(&mlist, node0);
+            list_remove_node(&mlist, node1);
+
+            asserteq(list_at(&mlist, 4), 6);
+            asserteq(mlist.size, 5);
+
+            list_delete(&mlist);
         });
 
         it("for_each",
@@ -199,6 +233,7 @@ describe(container,
             asserteq(mlist.size, 9);
             assert(mlist.head);
             assert(mlist.tail);
+            list_delete(&mlist);
         });
 
     });
