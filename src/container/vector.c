@@ -170,7 +170,8 @@ int vector_set(struct vector *this, int x, void *data)
 
 void vector_delete(struct vector *this)
 {
-    free(this->data);
+    if(this->data)
+        free(this->data);
     this->size = 0;
     this->allocated_size = 0;
     this->data = 0;
