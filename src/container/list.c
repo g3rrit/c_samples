@@ -136,6 +136,8 @@ struct list_node *list_push_front(struct list *this, void *data)
 
     if(this->head)
         this->head->prev = entry;
+    else
+        this->head = entry;
 
     if(!this->tail)
         this->tail = entry;
@@ -155,6 +157,8 @@ struct list_node *list_push_back(struct list *this, void *data)
 
     if(this->tail)
         this->tail->next = entry;
+    else
+        this->tail = entry;
 
     if(!this->head)
         this->head = entry;
