@@ -52,6 +52,10 @@ void vec2_scale(struct vec2 *v1, double scalar);
 void vec3_scale(struct vec3 *v1, double scalar);
 void vec4_scale(struct vec4 *v1, double scalar);
 
+double vec2_len(struct vec2 *v1);
+double vec3_len(struct vec3 *v1);
+double vec4_len(struct vec4 *v1);
+
 void vec2i_add(struct vec2i *v1, struct vec2i *v2);
 void vec3i_add(struct vec3i *v1, struct vec3i *v3);
 void vec4i_add(struct vec4i *v1, struct vec4i *v3);
@@ -59,6 +63,10 @@ void vec4i_add(struct vec4i *v1, struct vec4i *v3);
 void vec2i_scale(struct vec2i *v1, int scalar);
 void vec3i_scale(struct vec3i *v1, int scalar);
 void vec4i_scale(struct vec4i *v1, int scalar);
+
+int vec2i_len(struct vec2i *v1);
+int vec3i_len(struct vec3i *v1);
+int vec4i_len(struct vec4i *v1);
 
 #endif
 
@@ -103,6 +111,21 @@ void vec4_scale(struct vec4 *v1, double scalar)
     v1->a *= scalar;
 }
 
+double vec2_len(struct vec2 *v1)
+{
+    return 1;
+}
+
+double vec3_len(struct vec3 *v1)
+{
+    return 1;
+}
+
+double vec4_len(struct vec4 *v1)
+{
+    return 1;
+}
+
 void vec2i_add(struct vec2i *v1, struct vec2i *v2)
 {
     v1->x += v2->x;
@@ -139,6 +162,21 @@ void vec4i_scale(struct vec4i *v1, int scalar)
     v1->y *= scalar;
     v1->z *= scalar;
     v1->a *= scalar;
+}
+
+int vec2i_len(struct vec2i *v1)
+{
+    return 1;
+}
+
+int vec3i_len(struct vec3i *v1)
+{
+    return 1;
+}
+
+int vec4i_len(struct vec4i *v1)
+{
+    return 1;
 }
 
 #endif
