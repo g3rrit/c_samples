@@ -73,6 +73,8 @@ int vec4i_len(struct vec4i *v1);
 //src
 #ifndef VMATH_C
 
+#include <math.h>
+
 void vec2_add(struct vec2 *v1, struct vec2 *v2)
 {
     v1->x += v2->x;
@@ -113,17 +115,17 @@ void vec4_scale(struct vec4 *v1, double scalar)
 
 double vec2_len(struct vec2 *v1)
 {
-    return 1;
+    return sqrt(v1->x * v1->x + v1->y * v1->y);
 }
 
 double vec3_len(struct vec3 *v1)
 {
-    return 1;
+    return sqrt(v1->x * v1->x + v1->y * v1->y + v1->z * v1->z);
 }
 
 double vec4_len(struct vec4 *v1)
 {
-    return 1;
+    return sqrt(v1->x * v1->x + v1->y * v1->y + v1->z * v1->z + v1->a * v1->a);
 }
 
 void vec2i_add(struct vec2i *v1, struct vec2i *v2)
@@ -166,17 +168,17 @@ void vec4i_scale(struct vec4i *v1, int scalar)
 
 int vec2i_len(struct vec2i *v1)
 {
-    return 1;
+    return sqrt(v1->x * v1->x + v1->y * v1->y);
 }
 
 int vec3i_len(struct vec3i *v1)
 {
-    return 1;
+    return sqrt(v1->x * v1->x + v1->y * v1->y + v1->z * v1->z);
 }
 
 int vec4i_len(struct vec4i *v1)
 {
-    return 1;
+    return sqrt(v1->x * v1->x + v1->y * v1->y + v1->z * v1->z + v1->a * v1->a);
 }
 
 #endif
