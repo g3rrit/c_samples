@@ -52,6 +52,10 @@ void vec2_scale(struct vec2 *v1, double scalar);
 void vec3_scale(struct vec3 *v1, double scalar);
 void vec4_scale(struct vec4 *v1, double scalar);
 
+double vec2_mult(struct vec2 *v1, strut vec2 *v2);
+double vec3_mult(struct vec3 *v1, strut vec3 *v2);
+double vec4_mult(struct vec4 *v1, strut vec4 *v2);
+
 double vec2_len(struct vec2 *v1);
 double vec3_len(struct vec3 *v1);
 double vec4_len(struct vec4 *v1);
