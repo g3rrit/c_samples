@@ -320,10 +320,18 @@ void *list_remove_at(struct list *this, int x)
 void *list_remove_node(struct list *this, struct list_node *node)
 {
     if(!node->prev)
+    {
         this->head = node->next;
+        if(node->next)
+            node->next->prev = 0;
+    }
 
     if(!node->next)
+    {
         this->tail = node->prev;
+        if(node->prev)
+            node->prev->next = 0;
+    }
 
     if(node->next && node->prev)
     {
@@ -355,7 +363,6 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
     info.pos = 0;
     info.size = this->size;
 
-    printf("herer \n");
     /*
     while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
     {
@@ -365,6 +372,9 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
         info.pos++;
     }
     */
+
+    //you should be able to remove nodes while inside for_each
+    //so the walking is done bevor executing the for_each_function
 
     int run_l = 1;
     void *e_data;
@@ -379,12 +389,11 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
         else
             run_l = 0;
 
-        if(!(retval = fun(e_data, ref, &info)))
+        if((retval = fun(e_data, ref, &info)))
             break;
     }
     while(run_l);
 
-    printf("or herer \n");
     return retval;
 }
 
