@@ -351,10 +351,8 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
     info.pos = 0;
     info.size = this->size;
 
-    printf("error here ?\n");
     while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
     {
-        printf("or error here ?\n");
         entry = &(*entry)->next;
 
         info.entry = *entry;
