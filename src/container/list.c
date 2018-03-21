@@ -351,6 +351,7 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
     info.pos = 0;
     info.size = this->size;
 
+    printf("herer \n");
     while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
     {
         entry = &(*entry)->next;
@@ -358,6 +359,7 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
         info.entry = *entry;
         info.pos++;
     }
+    printf("or herer \n");
     return retval;
 }
 
