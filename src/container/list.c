@@ -333,7 +333,11 @@ void *list_remove_node(struct list *this, struct list_node *node)
 
     this->size--;
 
-    return node->data;
+    void *resdata = node->data;
+
+    free(node);
+
+    return resdata;
 }
 
 void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struct list_info *info), void *ref)
@@ -341,17 +345,18 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
     if(!(this->head))
         return 0;
 
-    struct list_node **entry = &(this->head);
+    struct list_node *entry = (this->head);
 
     void *retval = 0;
 
     struct list_info info;
     info.this = this;
-    info.entry = *entry;
+    info.entry = entry;
     info.pos = 0;
     info.size = this->size;
 
     printf("herer \n");
+    /*
     while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
     {
         entry = &(*entry)->next;
@@ -359,6 +364,26 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
         info.entry = *entry;
         info.pos++;
     }
+    */
+
+    int run_l = 1;
+    void *e_data;
+    do
+    {
+        e_data = entry->data;
+        info.entry = entry;
+        info.pos++;
+
+        if(entry->next)
+            entry = entry->next;
+        else
+            run_l = 0;
+
+        if(!(retval = fun(e_data, ref, &info)))
+            break;
+    }
+    while(run_l)
+
     printf("or herer \n");
     return retval;
 }
