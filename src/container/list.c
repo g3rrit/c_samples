@@ -382,7 +382,7 @@ void *list_for_each(struct list *this, void *(*fun)(void *data, void *ref, struc
         if(!(retval = fun(e_data, ref, &info)))
             break;
     }
-    while(run_l)
+    while(run_l);
 
     printf("or herer \n");
     return retval;
