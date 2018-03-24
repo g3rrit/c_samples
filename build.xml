@@ -1,0 +1,11 @@
+<build>
+
+    <target value="container"/>
+
+        <include value="src/container"/>
+
+        <source value="src/test/container_test.c"/> 
+           
+    </target>
+
+</build>

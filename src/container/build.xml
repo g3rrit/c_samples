@@ -1,0 +1,8 @@
+<build>
+
+    <source value="container.c"/>
+    <source value="list.c"/>
+    <source value="map.c"/>
+    <source value="vector.c"/>
+
+</build>

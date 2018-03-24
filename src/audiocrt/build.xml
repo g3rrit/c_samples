@@ -1,0 +1,7 @@
+<build>
+
+    <source value="pcm.c"/>
+    <source value="transform.c"/>
+    <source value="wave.c"/>
+
+</build>
