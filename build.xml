@@ -2,6 +2,10 @@
 
     <target value="container"/>
 
+        <flag output="build/a.out"/>
+
+        <flag include="src/unittest"/>
+
         <include value="src/container"/>
 
         <source value="src/test/container_test.c"/> 
