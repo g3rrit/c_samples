@@ -1,0 +1,15 @@
+<build>
+
+    <target value="server">
+
+        <source value="server.c"/>
+
+    </target>
+
+    <target value="client">
+
+        <source value="client.c"/>
+
+    </target>
+
+</build>
