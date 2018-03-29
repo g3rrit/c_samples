@@ -50,9 +50,11 @@ void to_little_endian(const long long int size, void *value);
 //src
 #ifndef PCM_C
 
+#ifndef WAVE_C
 #define WAVE_C
 #include "wave.c"
 #undef WAVE_C
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

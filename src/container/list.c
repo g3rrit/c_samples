@@ -151,6 +151,8 @@ struct list_node *list_push_back(struct list *this, void *data)
 {
     struct list_node *entry = malloc(sizeof(struct list_node)); 
 
+    printf("were is errreo\n");
+
     entry->data = data;
     entry->next = 0;
     entry->prev = this->tail;
