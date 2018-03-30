@@ -4,5 +4,6 @@
     <source value="list.c"/>
     <source value="map.c"/>
     <source value="vector.c"/>
+    <source value="stack.c"/>
 
 </build>

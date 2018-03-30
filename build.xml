@@ -2,6 +2,8 @@
 
     <target value="container"/>
 
+        <flag other="-w"/>
+
         <flag output="build/a.out"/>
 
         <flag include="src/unittest"/>

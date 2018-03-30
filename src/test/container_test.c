@@ -1,20 +1,34 @@
 
+#ifndef CONTAINER_C
 #define CONTAINER_C
 #define S_LINKED
 #include "container.c"
 #undef CONTAINER_C
+#endif
 
+#ifndef LIST_C
 #define LIST_C
 #include "list.c"
 #undef LIST_C
+#endif
 
+#ifndef MAP_C
 #define MAP_C
 #include "map.c"
 #undef MAP_C
+#endif
 
+#ifndef VECTOR_C
 #define VECTOR_C
 #include "vector.c"
 #undef VECTOR_C
+#endif
+
+#ifndef STACK_C
+#define STACK_C
+#include "stack.c"
+#undef STACK_C
+#endif
 
 #include "snow.h"
 
@@ -726,6 +740,106 @@ describe(container,
             assert(!mlist.head);
             assert(!mlist.tail);
             container_delete(&mlist);
+        });
+
+    });
+
+    subdesc(stack, 
+    {
+        it("push", 
+        {
+            struct stack mstack;
+            stack_init(&mstack);
+
+            for(int i = 0; i < 10; i++)
+            {
+                stack_push(&mstack, i);
+                asserteq(stack_top(&mstack), i);
+                asserteq(mstack.size, i + 1);
+            }
+
+            stack_delete(&mstack);
+        });
+
+        it("pop", 
+        {
+            struct stack mstack;
+            stack_init(&mstack);
+
+            stack_push(&mstack, 0);
+            stack_push(&mstack, 1);
+            stack_push(&mstack, 2);
+            stack_push(&mstack, 3);
+
+            asserteq(stack_pop(&mstack), 3);
+            asserteq(mstack.size, 3);
+            asserteq(stack_pop(&mstack), 2);
+            asserteq(mstack.size, 2);
+            asserteq(stack_pop(&mstack), 1);
+            asserteq(mstack.size, 1);
+
+            stack_delete(&mstack);
+        });
+
+        it("top", 
+        {
+            struct stack mstack;
+            stack_init(&mstack);
+
+            stack_push(&mstack, 0);
+            stack_push(&mstack, 1);
+            stack_push(&mstack, 2);
+            stack_push(&mstack, 3);
+
+            asserteq(stack_top(&mstack), 3);
+            asserteq(stack_pop(&mstack), 3);
+            asserteq(mstack.size, 3);
+            asserteq(stack_top(&mstack), 2);
+            asserteq(stack_pop(&mstack), 2);
+            asserteq(mstack.size, 2);
+            asserteq(stack_top(&mstack), 1);
+            asserteq(stack_pop(&mstack), 1);
+            asserteq(mstack.size, 1);
+
+            stack_delete(&mstack);
+        });
+
+        it("delete", 
+        {
+            struct stack mstack;
+            stack_init(&mstack);
+
+            for(int i = 0; i < 10; i++)
+            {
+                stack_push(&mstack, i);
+                asserteq(stack_top(&mstack), i);
+                asserteq(mstack.size, i + 1);
+            }
+
+            stack_delete(&mstack);
+
+            asserteq(mstack.size, 0);
+        });
+
+        it("delete_all", 
+        {
+            /*
+            struct stack mstack;
+            stack_init(&mstack);
+
+            for(int i = 0; i < 10; i++)
+            {
+                int *sp = malloc(sizeof(int));
+                *sp = i;
+                stack_push(&mstack, i);
+                asserteq(*stack_top(&mstack), i);
+                asserteq(mstack.size, i + 1);
+            }
+
+            stack_delete_all(&mstack);
+
+            asserteq(mstack.size, 0);
+            */
         });
 
     });
