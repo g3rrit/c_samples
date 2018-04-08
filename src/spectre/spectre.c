@@ -123,10 +123,11 @@ int main(int argc,
     array2[i] = 1; /* write to array2 so in RAM not copy-on-write zero pages */
   if (argc == 3) {
     sscanf(argv[1], "%p", (void * * )( & malicious_x));
-    malicious_x -= (size_t) array1; /* Convert input value into a pointer */
+    //malicious_x -= (size_t) array1; /* Convert input value into a pointer */
     sscanf(argv[2], "%d", & len);
   }
 
+  printf("starting at %p\n", malicious_x);
   printf("Reading %d bytes:\n", len);
   while (--len >= 0) {
     printf("Reading at malicious_x = %p... ", (void * ) malicious_x);
