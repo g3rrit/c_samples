@@ -13,13 +13,9 @@ int main()
     void *data;
     http_get("en.cppreference.com", "/w/c/memor/realloc", &data);
 
-    FILE *file = fopen("out.txt", "w");
-    fprintf(file, "%s", data);
-    fclose(file);
+    //http_post("man7.org", "/linux/man-pages/man2/socket.2.html", "", &data);
 
-    free(data);
-
-    http_post("man7.org", "/linux/man-pages/man2/socket.2.html", "", &data);
+    http_get_to_file("www.man7.org", "/linux/man-pages/man2/socket.2.html", "out2.txt");
 
     free(data);
 
