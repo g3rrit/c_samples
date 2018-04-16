@@ -24,15 +24,6 @@ int tcp_recv_to_file(struct tcp_connection *tcp_conn, char *url);
 
 int tcp_close(struct tcp_connection *tcp_conn);
 
-//HTTP
-
-//return length of data returned from request
-int http_get(char *host, char *url, void **data);
-
-int http_get_to_file(char *host, char *url, char *file_url);
-
-int http_post(char *host, char *url, char *query_string, void **data);
-
 
 #include <stdio.h>
 
@@ -52,11 +43,13 @@ extern FILE *TCP_LOG;
 #include <sys/socket.h>
 #include <netdb.h>
 
+#ifndef TCPUTIL_C
+#define TCPUTIL_C
+#include "tcputil.c"
+#undef TCPUTIL_C
+#endif
+
 FILE *TCP_LOG = 0;
-
-int r_alloc(void **data, int size);
-
-int int_s_length(int val);
 
 int tcp_connect(struct tcp_connection *tcp_conn, char *host, int port)
 {
@@ -236,108 +229,6 @@ int tcp_close(struct tcp_connection *tcp_conn)
     close(tcp_conn->tcp_socket);
 
     return 1;
-}
-
-
-//HTTP
-
-int http_get(char *host, char *url, void **data)
-{
-    struct tcp_connection tcp_conn;
-    
-    if(!tcp_connect(&tcp_conn, host, 80))
-        return 0;
-
-#define REQ_BUF_S 30
-    int request_size = sizeof(host) + sizeof(url) + 30 + REQ_BUF_S;
-    char request[request_size];
-
-    bzero(request, request_size);
-
-    sprintf(request, "Get %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
-
-    if(!tcp_send(&tcp_conn, request))
-        return 0;
-
-    int recv_bytes = tcp_recv_dynamic(&tcp_conn, data);
-
-    tcp_close(&tcp_conn); 
-
-    return recv_bytes + 1;
-}
-
-int http_get_to_file(char *host, char *url, char *file_url)
-{
-    struct tcp_connection tcp_conn;
-    
-    if(!tcp_connect(&tcp_conn, host, 80))
-        return 0;
-
-#define REQ_BUF_S 30
-    int request_size = sizeof(host) + sizeof(url) + 30 + REQ_BUF_S;
-    char request[request_size];
-
-    bzero(request, request_size);
-
-    sprintf(request, "Get %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
-
-    if(!tcp_send(&tcp_conn, request))
-        return 0;
-
-    int recv_bytes = tcp_recv_to_file(&tcp_conn, file_url);
-
-    tcp_close(&tcp_conn); 
-
-    return recv_bytes + 1;
-}
-
-int http_post(char *host, char *url, char *query_string, void **data)
-{
-    struct tcp_connection tcp_conn;
-
-    if(!tcp_connect(&tcp_conn, host, 80))
-            return 0;
-
-    int q_string_s = sizeof(query_string);
-    int request_size = sizeof(url) + q_string_s + int_s_length(q_string_s) + 70;  
-    char request[request_size];
-
-    bzero(request, request_size);
-
-    sprintf(request, "POST %s HTTP/1.1\r\nContent-Type: text/plain\r\nContent_Length: %i\r\n\r\n%s", url, q_string_s, query_string);
-
-    if(!tcp_send(&tcp_conn, request))
-        return 0;
-
-    int recv_bytes = tcp_recv_dynamic(&tcp_conn, data);
-
-    tcp_close(&tcp_conn);
-
-    return recv_bytes + 1;
-}
-
-int r_alloc(void **data, int size)
-{
-    int new_size = (size * 2)/3;
-    *data = realloc(*data, new_size);
-    
-    if(new_size > size)
-        bzero(*data + size, new_size - size);
-    return new_size;
-}
-
-int int_s_length(int val)
-{
-    int ret = 0;
-    for(int i = 10000000000; i > 0; i /= 10)
-    {
-        if((val/i) >= 1)
-            ret++;
-
-        val %= i;
-    }
-
-    return ret;
 }
 
 #endif

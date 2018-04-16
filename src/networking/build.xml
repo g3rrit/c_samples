@@ -1,0 +1,19 @@
+<build>
+
+    <target value="tcp-server">
+
+        <source value="tcp-client-server/server.c"/>
+
+    </target>
+
+    <target value="tcp-client">
+
+        <source value="tcp-client-server/client.c"/>
+
+    </target>
+
+    <target value="tcp">
+
+    </target>
+
+</build>
