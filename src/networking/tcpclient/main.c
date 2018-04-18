@@ -18,22 +18,32 @@
 
 #include <stdlib.h>
 
+int http_c(char *data, int size);
+
 int main()
 {
+    TCP_SSL_LOG = stdout;
     TCP_LOG = stdout;
 
-    void *data;
+    char *data;
     //http_get("www.web.de", "/", &data);
 
     //http_post("man7.org", "/linux/man-pages/man2/socket.2.html", "", &data);
 
-    https_get_to_file("www.man7.org", "/linux/man-pages/man2/socket.2.html", "out2.txt");
+    https_get("www.openssl.org", "/docs/man1.0.2/ssl/SSL_set_fd.html", &http_c);
+
     //
-    struct tcp_ssl_connection tcp_ssl;
+    /*struct tcp_ssl_connection tcp_ssl;
     tcp_ssl_connect(&tcp_ssl, "www.web.de", 443);
     tcp_ssl_close(&tcp_ssl);
+    */
+    //free(data);
 
-    free(data);
+    return 0;
+}
 
+int http_c(char *data, int size)
+{
+    printf("received:\n%s\n", data);
     return 0;
 }

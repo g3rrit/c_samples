@@ -12,15 +12,13 @@ struct tcp_connection
     int tcp_socket;
 };
 
+#include <openssl/ssl.h>
+
 int tcp_connect(struct tcp_connection *tcp_conn, char *host, int port);
 
 int tcp_send(struct tcp_connection *tcp_conn, char *request);
 
-int tcp_recv_dynamic(struct tcp_connection *tcp_conn, char **data);
-
-int tcp_recv_static(struct tcp_connection *tcp_conn, char *data, int size);
-
-int tcp_recv_to_file(struct tcp_connection *tcp_conn, char *url);
+int tcp_recv(struct tcp_connection *tcp_conn, int (*callback)(char *data, int size));
 
 int tcp_close(struct tcp_connection *tcp_conn);
 
@@ -130,98 +128,23 @@ int tcp_send(struct tcp_connection *tcp_conn, char *request)
     return total_bytes;
 }
 
-int tcp_recv_dynamic(struct tcp_connection *tcp_conn, char **data)
+int tcp_recv(struct tcp_connection *tcp_conn, int (*callback)(char *data, int size))
 {
-    //receive response
-#define UPPER_BUFF_S 32768
-    int recv_bytes = 0;
-    int buffer_size = 4096;
-    *data = malloc(buffer_size);
-    while(recv_bytes < UPPER_BUFF_S)
-    {
-        int bytes = read(tcp_conn->tcp_socket, *data + recv_bytes, buffer_size - recv_bytes);
-        if(bytes < 0)
-        {
-            printf("-----!error receiving response!-----\n");
-            return 0;
-        }
-        if(bytes == 0)
-            break;
-        recv_bytes += bytes;
-        if(recv_bytes >= buffer_size)
-            r_alloc(data, buffer_size);
-    }
-
-    *data = realloc(*data, recv_bytes + 1);  
-    ((char*)*data)[recv_bytes] = 0;
-
-    if(TCP_LOG)
-    {
-        fprintf(TCP_LOG, "received %i bytes\n", recv_bytes);
-        fprintf(TCP_LOG, "response:\n%s\n", *data);
-    }
-
-    return recv_bytes + 1;
-}
-
-int tcp_recv_static(struct tcp_connection *tcp_conn, char *data, int size)
-{
-    int recv_bytes = 0;
-    while(recv_bytes < size - 1)
-    {
-        int bytes = read(tcp_conn->tcp_socket, data + recv_bytes, size - recv_bytes);
-        if(bytes < 0)
-        {
-            printf("-----!error receiving response!-----\n");
-            return 0;
-        }
-        if(bytes == 0)
-            break;
-        recv_bytes += bytes;
-    }
-
-    data[recv_bytes] = 0;
-
-    if(TCP_LOG)
-    {
-        fprintf(TCP_LOG, "received %i bytes\n", recv_bytes);
-        fprintf(TCP_LOG, "response:\n%s\n", *data);
-    }
-
-    return recv_bytes + 1;
-}
-
-int tcp_recv_to_file(struct tcp_connection *tcp_conn, char *url)
-{
-    FILE *file = fopen(url, "wb");
-    if(!file)
-        printf("-----!error opening file!------\n");
-
-    int recv_bytes = 0;
-    int bytes = 1;
-    unsigned char buffer[1024];
+    int bytes = 0;
     int buffer_size = 1024;
-    while(bytes != 0)
+    char buffer[buffer_size];
+    do
     {
-        bytes = read(tcp_conn->tcp_socket, buffer, buffer_size);
-        if(bytes < 0)
+        bytes = recv(tcp_conn->tcp_socket, buffer, buffer_size, 0);
+
+        if(bytes > 0)
         {
-            printf("-----!error receiving response!-----\n");
-            return 0;
+            buffer[bytes] = 0;
+            if(callback(buffer, bytes) == -1)
+                break;
         }
-        fwrite(buffer, bytes, 1, file);
-        recv_bytes += bytes;
-    }
 
-    /*if(TCP_LOG)
-    {
-        fprintf(TCP_LOG, "received %i bytes\n", recv_bytes);
-        fprintf(TCP_LOG, "response:\n%s\n", *data);
-    }*/
-
-    fclose(file);
-
-    return recv_bytes + 1;
+    } while(bytes > 0);
 }
 
 int tcp_close(struct tcp_connection *tcp_conn)

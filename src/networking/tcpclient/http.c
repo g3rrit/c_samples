@@ -5,19 +5,24 @@
 //HTTP
 
 //return length of data returned from request
-int http_get(char *host, char *url, void **data);
+int http_get(char *host, char *url, int (*callback)(char *data, int size));
+
+/*
 
 int http_get_to_file(char *host, char *url, char *file_url);
 
 int http_post(char *host, char *url, char *query_string, void **data);
 
 //HTTPS
+*/
 
-int https_get(char *host, char *url, void **data);
+int https_get(char *host, char *url, int (*callback)(char *data, int size));
 
+/*
 int https_get_to_file(char *host, char *url, char *file_url);
 
 int https_post(char *host, char *url, char *query_string, void **data);
+*/
 
 #endif
 
@@ -38,7 +43,7 @@ int https_post(char *host, char *url, char *query_string, void **data);
 
 //HTTP
 
-int http_get(char *host, char *url, void **data)
+int http_get(char *host, char *url, int (*fun)(char *data, int size))
 {
     struct tcp_connection tcp_conn;
     
@@ -51,17 +56,19 @@ int http_get(char *host, char *url, void **data)
 
     bzero(request, request_size);
 
-    sprintf(request, "Get %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
+    sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
 
     if(!tcp_send(&tcp_conn, request))
         return 0;
 
-    int recv_bytes = tcp_recv_dynamic(&tcp_conn, data);
+    int recv_bytes = tcp_recv(&tcp_conn, fun);
 
     tcp_close(&tcp_conn); 
 
     return recv_bytes + 1;
 }
+
+/*
 
 int http_get_to_file(char *host, char *url, char *file_url)
 {
@@ -76,7 +83,7 @@ int http_get_to_file(char *host, char *url, char *file_url)
 
     bzero(request, request_size);
 
-    sprintf(request, "Get %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
+    sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
 
     if(!tcp_send(&tcp_conn, request))
         return 0;
@@ -116,7 +123,9 @@ int http_post(char *host, char *url, char *query_string, void **data)
 
 //HTTPS
 
-int https_get(char *host, char *url, void **data)
+*/
+
+int https_get(char *host, char *url, int (*callback)(char *data, int size))
 {
     struct tcp_ssl_connection tcp_conn;
     
@@ -129,18 +138,19 @@ int https_get(char *host, char *url, void **data)
 
     bzero(request, request_size);
 
-    sprintf(request, "Get %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
+    sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
 
     if(!tcp_ssl_send(&tcp_conn, request))
         return 0;
 
-    int recv_bytes = tcp_ssl_recv_dynamic(&tcp_conn, data);
+    int recv_bytes = tcp_ssl_recv(&tcp_conn, callback);
 
     tcp_ssl_close(&tcp_conn); 
 
     return recv_bytes + 1;
 }
 
+/*
 int https_get_to_file(char *host, char *url, char *file_url)
 {
     struct tcp_ssl_connection tcp_conn;
@@ -154,7 +164,7 @@ int https_get_to_file(char *host, char *url, char *file_url)
 
     bzero(request, request_size);
 
-    sprintf(request, "Get %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
+    sprintf(request, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", url, host);
 
     if(!tcp_ssl_send(&tcp_conn, request))
         return 0;
@@ -165,6 +175,7 @@ int https_get_to_file(char *host, char *url, char *file_url)
 
     return recv_bytes + 1;
 }
+
 
 int https_post(char *host, char *url, char *query_string, void **data)
 {
@@ -190,6 +201,8 @@ int https_post(char *host, char *url, char *query_string, void **data)
 
     return recv_bytes + 1;
 }
+
+*/
 
 
 #endif
