@@ -20,17 +20,21 @@
 
 int http_c(char *data, int size);
 
+FILE *outfile = 0;
+
 int main()
 {
     TCP_SSL_LOG = stdout;
     TCP_LOG = stdout;
+
+    outfile = fopen("out.txt", "w");
 
     char *data;
     //http_get("www.web.de", "/", &data);
 
     //http_post("man7.org", "/linux/man-pages/man2/socket.2.html", "", &data);
 
-    https_get("www.openssl.org", "/docs/man1.0.2/ssl/SSL_set_fd.html", &http_c);
+    https_get("www.reddit.com", "/", &http_c);
 
     //
     /*struct tcp_ssl_connection tcp_ssl;
@@ -38,12 +42,14 @@ int main()
     tcp_ssl_close(&tcp_ssl);
     */
     //free(data);
+    //
+    fclose(outfile);
 
     return 0;
 }
 
 int http_c(char *data, int size)
 {
-    printf("received:\n%s\n", data);
+    fprintf(outfile, "%s", data);
     return 0;
 }

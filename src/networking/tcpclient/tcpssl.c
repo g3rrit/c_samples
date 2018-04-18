@@ -10,14 +10,11 @@
 
 struct tcp_ssl_connection
 {
-    int port;
-    char ports[12];
-
     char *dest;
 
     BIO *bio; 
-    SSL *ssl_conn;
-    SSL_CTX *ssl_ctx;
+    SSL *ssl;
+    SSL_CTX *ctx;
 };
 
 int tcp_ssl_connect(struct tcp_ssl_connection *tcp_conn, char *host, int port);
@@ -49,102 +46,51 @@ extern FILE *TCP_SSL_LOG;
 #undef TCPUTIL_C
 #endif
 
+int SSL_LIB_STARTED = 0;
+
 
 FILE *TCP_SSL_LOG = 0;
 
 int tcp_ssl_connect(struct tcp_ssl_connection *tcp_conn, char *host, int port)
 {
     //initialize openssl
-    SSL_load_error_strings();
-    SSL_library_init();
-    tcp_conn->ssl_ctx = SSL_CTX_new(SSLv23_client_method());
+    if(!SSL_LIB_STARTED)
+    {
+        printf("starting ssl lib\n");
+        SSL_library_init();
+        SSL_LIB_STARTED = 1;
+    }
 
-    if(!tcp_conn->ssl_ctx)
+    tcp_conn->ctx = SSL_CTX_new(SSLv23_client_method());
+
+    if(!tcp_conn->ctx)
     {
         printf("ctx is null\n");
         return 0;
     }
 
-    tcp_conn->port = port;
+    char ports[12];
+    memset(ports, 12, 0);
+    sprintf(ports, "%i", port);
+    printf("ports: %s\n", ports);
 
-    memset(tcp_conn->ports, 12, 0);
-    sprintf(tcp_conn->ports, "%i", port);
-    printf("ports: %s\n", tcp_conn->ports);
+    tcp_conn->dest = malloc(strlen(host) + strlen(ports) + 2);
 
-    //create ssl connection and attack it to the socket
-    //tcp_conn->ssl_conn = SSL_new(tcp_conn->ssl_ctx); 
-    //SSL_set_fd(tcp_conn->ssl_conn, tcp_conn->tcp_socket);
-    //
-    /*
-    if(TCP_SSL_LOG)
-        fprintf(TCP_SSL_LOG, "+ tcp socket succesfully opened\n");
-
-    if((tcp_conn->server = gethostbyname(host)) == 0)
-    {
-        close(tcp_conn->tcp_socket);
-        printf("-----!error getting hostname!-----\n");
-        return 0; 
-    }
-
-    */
-
-    /*j
-    if(TCP_SSL_LOG)
-        fprintf(TCP_SSL_LOG, "%s -----------\n", tcp_conn->server->h_name);
-        */
-    
-    /*if(TCP_SSL_LOG)
-    {
-        for(int i = 0; tcp_conn->server->h_addr_list[i]; i++)
-            fprintf(TCP_SSL_LOG, " -> %s\n", inet_ntoa(*(struct in_addr*)(tcp_conn->server->h_addr_list[i]))); 
-    }
-    */
-
-    /*
-    bzero(&tcp_conn->server_addr, sizeof(tcp_conn->server_addr));
-
-    tcp_conn->server_addr.sin_family = AF_INET;
-
-    bcopy(tcp_conn->server->h_addr, &tcp_conn->server_addr.sin_addr.s_addr, tcp_conn->server->h_length);
-
-    tcp_conn->server_addr.sin_port = htons(tcp_conn->port);
-
-    if(connect(tcp_conn->tcp_socket, &tcp_conn->server_addr, sizeof(tcp_conn->server_addr)) < 0)
-    {
-        printf("-----!error connection to server!-----\n");
-        return 0;
-    }
-
-    int err = SSL_connect(tcp_conn->ssl_conn);
-
-    if(err != 1)
-    {
-        printf("-----!error performing ssl handshake!-----\n");
-        printf("-----!error: %i\n", err);
-        return 0;
-    }
-
-    
-    if(TCP_SSL_LOG)
-        fprintf(TCP_SSL_LOG, "succefully connected to server\n");
-        */
-
-    tcp_conn->bio = BIO_new_ssl_connect(tcp_conn->ssl_ctx);
-
-    tcp_conn->dest = malloc(strlen(host) + strlen(tcp_conn->ports) + 2);
-
+    //create dest string www.website.de:443
     int offset = 0;
-
     strcpy(tcp_conn->dest, host);
     char dp = ':';
     offset += strlen(host);
     strcpy(tcp_conn->dest + offset, &dp);
     offset++;
-    strcpy(tcp_conn->dest + offset, tcp_conn->ports);
-    offset += strlen(tcp_conn->ports);
+    strcpy(tcp_conn->dest + offset, ports);
+    offset += strlen(ports);
     tcp_conn->dest[offset] = 0;
+    //-----
     
     printf("dest: %s\n", tcp_conn->dest);
+
+    tcp_conn->bio = BIO_new_ssl_connect(tcp_conn->ctx);
 
     BIO_set_conn_hostname(tcp_conn->bio, tcp_conn->dest);
 
@@ -167,7 +113,7 @@ int tcp_ssl_send(struct tcp_ssl_connection *tcp_conn, char *request)
     int total_bytes = strlen(request);
     while(sent_bytes < total_bytes)
     {
-        int bytes = BIO_write(tcp_conn->ssl_conn, request + sent_bytes, total_bytes - sent_bytes);
+        int bytes = BIO_write(tcp_conn->bio, request + sent_bytes, total_bytes - sent_bytes);
         printf("total: %i\n", total_bytes);
         printf("bytes: %i\n", bytes);
         if(bytes < 0)
@@ -190,36 +136,35 @@ int tcp_ssl_send(struct tcp_ssl_connection *tcp_conn, char *request)
 int tcp_ssl_recv(struct tcp_ssl_connection *tcp_conn, int (*callback)(char *data, int size))
 {
     int bytes = 0;
-    char buffer_size = 1024;
-    char buffer[buffer_size];
+    int total_b = 0;
+    int buffer_size = 1024;
+    char r_buffer[buffer_size];
     do
     {
-        bytes = BIO_read(tcp_conn->ssl_conn, buffer, buffer_size);
+        bytes = 0;
+        bytes = BIO_read(tcp_conn->bio, r_buffer, buffer_size - 1);
 
         printf("bytes: %i\n", bytes);
 
+        total_b += bytes; 
+
         if(bytes > 0)
         {
-            buffer[bytes] = 0;
-            if(callback(buffer, bytes) == -1)
+            r_buffer[bytes] = 0;
+            if(callback(r_buffer, bytes) == -1)
                 break;
         }
 
     } while(bytes > 0);
+
+    return total_b;
 }
 
 int tcp_ssl_close(struct tcp_ssl_connection *tcp_conn)
 {
-    /*
-    SSL_shutdown(tcp_conn->ssl_conn);
-    SSL_free(tcp_conn->ssl_conn);
-
-    close(tcp_conn->tcp_socket);
-    */
-
     BIO_free_all(tcp_conn->bio);
 
-    SSL_CTX_free(tcp_conn->ssl_ctx);
+    SSL_CTX_free(tcp_conn->ctx);
 
     free(tcp_conn->dest);
 
