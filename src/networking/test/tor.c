@@ -17,7 +17,7 @@ int main()
     struct sockaddr_in p_addr;
 
     p_addr.sin_family = AF_INET;
-    p_addr.sin_port = htons(9051);
+    p_addr.sin_port = htons(9050);
     inet_pton(AF_INET, "127.0.0.1", &(p_addr.sin_addr.s_addr));
 
     //connect to socket
@@ -45,69 +45,64 @@ int main()
     *(ptr++) = 1;
     *(ptr++) = 0x00;
 
-    if(send(p_socket, buffer, ptr-buffer, 0) != -1)
+    if(send(p_socket, buffer, ptr-buffer, 0) == -1)
+        printf("error sending to socket\n");
+
+    if(recv(p_socket, buffer, 2, 0) == -1)
+        printf("erro receving from socket\n");
+
+    if(buffer[0] != 5 || buffer[1] == 0xFF)        
+        printf("error\n");
+
+    ptr = buffer;
+    *(ptr++) = 5;
+    *(ptr++) = 1;
+    *(ptr++) = 0;
+    *(ptr++) = 1;
+
+    //HERE IS MY PROBLEM!!!
+    memcpy(ptr, &dest_addr.sin_addr.s_addr, sizeof(dest_addr.sin_addr));
+    ptr += sizeof(dest_addr.sin_addr);
+
+    *(ptr++) = dest_port >> 8;
+    *(ptr++) = dest_port & 0xFF;
+    send(p_socket, buffer, ptr - buffer, 0);
+    recv(p_socket, buffer, 4, 0);
+
+    printf("socket ret: %i\n", (int)buffer[1]);
+
+    if(buffer[1] != 0x00)
+        printf("error\n");
+
+    ptr = buffer + 4;
+    if(buffer[3] == 1)
     {
-        if(recv(p_socket, buffer, 2, 0) != -1)
-        {
-            if(buffer[0] != 5 || buffer[1] == 0xFF)        
-            {
-                printf("error\n");
-            }
-
-            ptr = buffer;
-            *(ptr++) = 5;
-            *(ptr++) = 1;
-            *(ptr++) = 0;
-            *(ptr++) = 1;
-
-            //HERE IS MY PROBLEM!!!
-            memcpy(ptr, &dest_addr.sin_addr.s_addr, sizeof(dest_addr.sin_addr));
-            ptr += sizeof(dest_addr.sin_addr);
-
-            *(ptr++) = dest_port >> 8;
-            *(ptr++) = dest_port & 0xFF;
-            send(p_socket, buffer, ptr - buffer, 0);
-            recv(p_socket, buffer, 4, 0);
-
-            printf("socket ret: %i\n", (int)buffer[1]);
-
-            if(buffer[1] != 0x00)
-                printf("error\n");
-
-            ptr = buffer + 4;
-            if(buffer[3] == 1)
-            {
-                recv(p_socket, ptr, 1, 0);
-            }
-            else if(buffer[3] == 3)
-            {
-                recv(p_socket, ptr, 1, 0);
-                recv(p_socket, ptr+1, *(unsigned char *)ptr + 2, 0);
-            }
-            else if(buffer[3] == 4)
-            {
-                recv(p_socket, ptr, 16 + 2, 0);
-            }
-
-            printf("success!\n");
-
-            char req[] = "GET / HTTP/1.1\r\nHost: www.reddit.com\r\nConnection: close\r\n";
-
-            send(p_socket, req, sizeof(req), 0);
-
-            char ret_buffer[1024];
-            memset(ret_buffer, 0, 1024);
-
-            int bytes = recv(p_socket, ret_buffer, sizeof(ret_buffer), 0);
-            printf("received bytes: %i\n", bytes);
-            print_hex(ret_buffer, bytes);
-
-            printf("response:\n%s\n", ret_buffer);
-           
-        }
+        recv(p_socket, ptr, 1, 0);
+    }
+    else if(buffer[3] == 3)
+    {
+        recv(p_socket, ptr, 1, 0);
+        recv(p_socket, ptr+1, *(unsigned char *)ptr + 2, 0);
+    }
+    else if(buffer[3] == 4)
+    {
+        recv(p_socket, ptr, 16 + 2, 0);
     }
 
+    printf("success!\n");
 
+    char req[] = "GET / HTTP/1.1\r\nHost: www.reddit.com\r\nConnection: close\r\n";
+
+    send(p_socket, req, sizeof(req), 0);
+
+    char ret_buffer[1024];
+    memset(ret_buffer, 0, 1024);
+
+    int bytes = recv(p_socket, ret_buffer, sizeof(ret_buffer), 0);
+    printf("received bytes: %i\n", bytes);
+    print_hex(ret_buffer, bytes);
+
+    printf("response:\n%s\n", ret_buffer);
 
     close(p_socket);
 }
