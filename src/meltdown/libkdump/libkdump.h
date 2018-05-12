@@ -17,7 +17,8 @@
 /**
  * libkdump exception handling
  */
-typedef enum {
+typedef enum 
+{
     SIGNAL_HANDLER, /**< Install a signal handler to catch SIGSEGV */
     TSX /**< Use Intel TSX to suppress exception */
 } libkdump_fault_handling_t;
@@ -26,7 +27,8 @@ typedef enum {
 /**
  * libkdump load thread action
  */
-typedef enum {
+typedef enum 
+{
     NOP, /**< Just run an endless loop */
     IO, /**< Perform I/O operations to trigger interrupts */
     YIELD /**< Continuously switch to the operating system */ 
@@ -36,15 +38,16 @@ typedef enum {
 /**
  * libkdump configuration
  */
-typedef struct {
-  size_t cache_miss_threshold; /**< Cache miss threshold in cycles for Flush+Reload */
-  libkdump_fault_handling_t fault_handling; /**< Type of fault handling (TSX or signal handler) */
-  int measurements; /**< Number of measurements to perform for one address */
-  int accept_after; /**< How many measurements must be the same to accept the read value */
-  int load_threads; /**< Number of threads which are started to increase the chance of reading from inaccessible addresses */
-  libkdump_load_t load_type; /**< Function the load threads should execute */
-  int retries; /**< Number of Meltdown retries for an address */
-  size_t physical_offset; /**< Address of the physical direct map */
+typedef struct 
+{
+    size_t cache_miss_threshold; /**< Cache miss threshold in cycles for Flush+Reload */
+    libkdump_fault_handling_t fault_handling; /**< Type of fault handling (TSX or signal handler) */
+    int measurements; /**< Number of measurements to perform for one address */
+    int accept_after; /**< How many measurements must be the same to accept the read value */
+    int load_threads; /**< Number of threads which are started to increase the chance of reading from inaccessible addresses */
+    libkdump_load_t load_type; /**< Function the load threads should execute */
+    int retries; /**< Number of Meltdown retries for an address */
+    size_t physical_offset; /**< Address of the physical direct map */
 } libkdump_config_t;
 
 extern libkdump_config_t libkdump_auto_config;
