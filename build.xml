@@ -1,17 +1,21 @@
-<build>
+<build compiler="gcc">
 
-    <target value="container"/>
+    <option>
+        -o build/a.out
+    </option>
 
-        <flag other="-w"/>
+    <option>
+        -w
+    </option>
 
-        <flag output="build/a.out"/>
+    <include> src/container </include>
 
-        <flag include="src/unittest"/>
+    <option prefix="-I" include="true">
+        src/unitest
+    </option>
 
-        <include value="src/container"/>
-
-        <source value="src/test/container_test.c"/> 
-           
-    </target>
+    <option include="true">
+        src/test/container_test.c
+    </option>
 
 </build>
