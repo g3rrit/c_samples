@@ -1,63 +1,52 @@
-//hdr
-//compile with -lpthread
-//thread wrapper file
-#ifndef THREAD_H
-#define THREAD_H
+#include "thread.h"
 
-#ifdef _WIN32
-#include "windows.h"
-#else
-#include "pthread.h"
-#endif
-
-struct thread
-{
-#ifdef _WIN32
-    HANDLE *handle;
-    DWORD thread_id; 
-#else
-    struct pthread_t *handle;
-#endif
-};
-
-void thread_init(struct thread *this);
-
-int thread_create(struct thread *_thread, void *attr, void *(*fun)(void *), void *arg);
-
-int thread_join(struct thread *_thread, void **ret);
-
-#endif
-
-//src
-#ifndef THREAD_C
+#include "error.h"
 
 void thread_init(struct thread *this)
 {
 #ifdef _WIN32 
     this->handle = malloc(sizeof(HANDLE));
 #else
-    this->pthread = malloc(sizeof(struct thread));
+    this->handle = malloc(sizeof(struct pthread_t));
 #endif
 }
 
-inline int thread_create(struct thread *_thread, void *attr, void *(*fun)(void *), void *arg)
+int thread_create(struct thread *this, int (*fun)(void *arg), void *arg)
 {
 #ifdef _WIN32
-    CreateThread(0, 0, fun, arg, 0, &(_thread->thread_id));
+    if(!(*this->handle = CreateThread(0, 0, fun, arg, 0, &(this->thread_id))))
+    {
+        set_error(200);
+        return 0;
+    }
 #else
-    pthread_create(_thread->handle, attr, fun, arg);
+    if(pthread_create(this->handle, 0, fun, arg))
+    {
+        set_error(200);
+        return 0;
+    }
 #endif
+    return 1;
 }
 
-int thread_join(struct thread *_thread, void **ret)
+int thread_join(struct thread *this)
 {
+    int res = 0;
 #ifdef _WIN32
-    WaitForSingleObject(*(_thread->handle), INFINITE);
-#else
-    pthread_join(_thread, ret);
-#endif
-    free(_thread->handle);
-}
+    DWORD exit_code;
+    for(exit_code = STILL_ACTIVE; exit_code == STILL_ACTIVE; GetExitCodeThread(*(this->handle), &exit_code)) 
+        Sleep(100);
 
+    WaitForSingleObject(*(this->handle), INFINITE);
+    res = (int)exit_code;
+#else
+    int *ret = malloc(sizeof(int));
+    pthread_join(this, &ret);
+    res = *ret;
+    free(ret);
 #endif
+    free(this->handle);
+
+    return res;
+}
 
