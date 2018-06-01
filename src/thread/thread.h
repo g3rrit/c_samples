@@ -11,6 +11,7 @@
 
 struct thread
 {
+    int type;
 #ifdef _WIN32
     HANDLE *handle;
     DWORD thread_id; 
@@ -18,8 +19,6 @@ struct thread
     struct pthread_t *handle;
 #endif
 };
-
-void thread_init(struct thread *this);
 
 int thread_create(struct thread *this, int (*fun)(void *arg), void *arg);
 

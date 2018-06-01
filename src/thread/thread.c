@@ -2,17 +2,14 @@
 
 #include "error.h"
 
-void thread_init(struct thread *this)
+int thread_create(struct thread *this, int (*fun)(void *arg), void *arg)
 {
 #ifdef _WIN32 
     this->handle = malloc(sizeof(HANDLE));
 #else
     this->handle = malloc(sizeof(struct pthread_t));
 #endif
-}
 
-int thread_create(struct thread *this, int (*fun)(void *arg), void *arg)
-{
 #ifdef _WIN32
     if(!(*this->handle = CreateThread(0, 0, fun, arg, 0, &(this->thread_id))))
     {
@@ -36,8 +33,8 @@ int thread_join(struct thread *this)
     DWORD exit_code;
     for(exit_code = STILL_ACTIVE; exit_code == STILL_ACTIVE; GetExitCodeThread(*(this->handle), &exit_code)) 
         Sleep(100);
-
-    WaitForSingleObject(*(this->handle), INFINITE);
+    //WaitForSingleObject(*(this->handle), INFINITE);
+    CloseHandle(*(this->handle));
     res = (int)exit_code;
 #else
     int *ret = malloc(sizeof(int));
