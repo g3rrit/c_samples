@@ -10,8 +10,8 @@
 
 void *worker_callback(struct worker *this, void *data, int CB_TYPE);
 
-int mutex_init();
+int callback_mutex_init();
 
-int mutex_delete();
+int callback_mutex_delete();
 
 #endif

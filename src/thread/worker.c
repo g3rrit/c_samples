@@ -1,6 +1,7 @@
 #include "worker.h"
 
 #include "worker_callback.h"
+#include "mutex.h"
 
 struct worker *finished_workers[MAX_WORKERS];        
 int finished_workers_size = 0;
@@ -11,31 +12,14 @@ int worker_id = 0;
 
 void cleanup_workers();
 
-#ifdef _WIN32
-#include <windows.h>
-HANDLE m_lock;
-#else
-#include <unistd.h>     //for sleeping
-pthread_mutex_t m_lock;
-#endif
+mutex_declare(m_lock);
+
 
 int worker_init()
 {
-#ifdef _WIN32
-    m_lock = CreateMutex(0, FALSE, 0);
-    if(!m_lock)
-    {
-        set_error(254);
-        return 0;
-    } 
-#else
-    if(pthread_mutex_init(&m_lock, 0))
-    {
-        set_error(254);
-        return 0;
-    }
-#endif
-    if(!mutex_init())
+    mutex_init(m_lock);
+
+    if(!callback_mutex_init())
         return 0;
 
     return 1;
@@ -45,24 +29,14 @@ int worker_delete()
 {
     while(workers_active)
     {
-        printf("still active workers waiting...\n");
-#ifdef _WIN32
-        Sleep(1000);
-#else
-        sleep(1);
-#endif
+        printf("still %i active workers waiting...\n", workers_active);
+        sleep_ms(500);
     }
     cleanup_workers();
-#ifdef _WIN32
-    CloseHandle(m_lock);
-#else
-    if(pthread_mutex_destroy(&m_lock))
-    {
-        set_error(255);
-        return 0;
-    }
-#endif
-    if(!mutex_delete())
+
+    mutex_delete(m_lock);
+
+    if(!callback_mutex_delete())
         return 0;
 
     return 1;
@@ -97,11 +71,8 @@ int add_worker(int (*fun)(struct worker *this), void *arg, void *(*callback)(str
 
 void worker_finished(struct worker *this)
 {
-#ifdef _WIN32
-    WaitForSingleObject(m_lock, INFINITE);
-#else
-    pthread_mutex_lock(&m_lock);
-#endif
+    mutex_lock(m_lock);
+
     finished_workers[finished_workers_size] = this;
 
     finished_workers_size++;
@@ -110,22 +81,17 @@ void worker_finished(struct worker *this)
     if(finished_workers_size >= MAX_WORKERS)
     {
         set_error(252);
+        mutex_unlock(m_lock);
         return;
     }
-#ifdef _WIN32
-    ReleaseMutex(m_lock);
-#else
-    pthread_mutex_unlock(&m_lock);
-#endif
+    
+    mutex_unlock(m_lock);
 }
 
 void cleanup_workers()
 {
-#ifdef _WIN32
-    WaitForSingleObject(m_lock, INFINITE);
-#else
-    pthread_mutex_lock(&m_lock);
-#endif
+    mutex_lock(m_lock);
+
     for(int i = 0; i < finished_workers_size; i++)
     {
         struct worker *temp = finished_workers[i];
@@ -136,9 +102,6 @@ void cleanup_workers()
         free(temp);
     }
     finished_workers_size = 0;
-#ifdef _WIN32
-    ReleaseMutex(m_lock);
-#else
-    pthread_mutex_unlock(&m_lock);
-#endif
+
+    mutex_unlock(m_lock);
 }
