@@ -1,9 +1,11 @@
-<build>
+<build compiler="gcc">
 
-    <source value="container.c"/>
-    <source value="list.c"/>
-    <source value="map.c"/>
-    <source value="vector.c"/>
-    <source value="stack.c"/>
+    <option include="true">
+        container.c
+        list.c
+        map.c
+        vector.c
+        stack.c
+    </option>
 
 </build>
