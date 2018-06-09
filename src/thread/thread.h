@@ -3,8 +3,9 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+#include "mstd.h"
+
 #ifdef _WIN32
-#include "windows.h"
 #else
 #include "pthread.h"
 #endif

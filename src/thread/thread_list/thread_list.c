@@ -51,14 +51,13 @@ int thread_list_add(struct thread_list *this, void *data)
 //returns pointer to element
 void *thread_list_remove(struct thread_list *this, int pos)
 {
-    mutex_lock(this->list_mutex);
-
     if(pos >= MAX_LIST_SIZE || pos < 0)
     {
         set_error(401);
-        mutex_unlock(this->list_mutex);
         return 0;
     }
+
+    mutex_lock(this->list_mutex);
 
     void *el = this->array[pos];
 
@@ -74,14 +73,13 @@ void *thread_list_remove(struct thread_list *this, int pos)
 
 void *thread_list_get(struct thread_list *this, int pos)
 {
-    mutex_lock(this->list_mutex);
-
     if(pos >= MAX_LIST_SIZE || pos < 0)
     {
         set_error(401);
-        mutex_unlock(this->list_mutex);
         return 0;
     }
+
+    mutex_lock(this->list_mutex);
 
     void *el = this->array[pos];
 
@@ -92,9 +90,9 @@ void *thread_list_get(struct thread_list *this, int pos)
 
 void *thread_list_for_each(struct thread_list *this, void *(*fun)(struct thread_list *list, void *element, int pos, void *ref), void *ref)
 {
-    mutex_lock(this->list_mutex);
-
     void *retval = 0;
+
+    mutex_lock(this->list_mutex);
 
     for(int i = 0; i < MAX_LIST_SIZE; i++)
     {

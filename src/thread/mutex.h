@@ -1,9 +1,10 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
+#include "mstd.h"
+
 //-----WINDOWS-----
 #ifdef _WIN32
-#include <windows.h>
 
 #define mutex_declare(name)         HANDLE name
 
