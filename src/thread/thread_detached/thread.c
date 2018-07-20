@@ -7,7 +7,6 @@
 #include "pthread.h"
 #endif
 
-
 int thread_create(void (*fun)(void *arg), void *arg)
 {
 #ifdef _WIN32 
