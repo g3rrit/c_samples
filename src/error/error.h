@@ -22,8 +22,10 @@ struct result_t
 
 typedef struct result_t* result;
 
+#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
 
-#define err(__msg, __err_h)                                                                               \
+
+#define err(__msg, __err_h)                                                                             \
                                     {                                                                   \
                                         char *_msg = __msg;                                             \
                                         void (*_err_h)() = __err_h;                                     \
@@ -37,9 +39,9 @@ typedef struct result_t* result;
                                         return _res;                                                    \
                                     }
 
-#define ok(__ok)                                                                                         \
+#define ok(__ok)                                                                                        \
                                     {                                                                   \
-                                        void *_ok = __ok;                                               \
+                                        void *_ok = (void*)__ok;                                        \
                                         struct result_t *_res = malloc(sizeof(struct result_t));        \
                                         _res->is_error = 0;                                             \
                                         _res->ok = _ok;                                                 \
@@ -48,7 +50,7 @@ typedef struct result_t* result;
 
 #define try(__ok, __res, __msg, __err_h)                                                                \
                                     {                                                                   \
-                                        void *_ok = __ok;                                               \
+                                        void *_ok = (void*)__ok;                                        \
                                         struct result_t *_res = __res;                                  \
                                         char *_msg = __msg;                                             \
                                         void (*_err_h)() = __err_h;                                     \
@@ -70,7 +72,7 @@ typedef struct result_t* result;
 #define catch(__ok, __res, _for_each)                                                                   \
                                     {                                                                   \
                                         struct result_t *_res = __res;                                  \
-                                        void *_ok = __ok;                                               \
+                                        void *_ok = (void*)__ok;                                        \
                                         if(_res->is_error)                                              \
                                         {                                                               \
                                             struct error_t *_err = _res->err;                           \
