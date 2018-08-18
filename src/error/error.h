@@ -6,6 +6,7 @@
 struct error_t 
 {
     char *msg;
+    char *func;
     void *err_d;
     struct error_t *prev_err;
 };
@@ -67,6 +68,13 @@ typedef struct result_t* result;
                                         {                                                               \
                                             _ok = _res->ok;                                             \
                                         }                                                               \
+                                    }
+
+#define test(__res)                                                                                     \
+                                    {                                                                   \
+                                        struct result_t *_res = __res;                                  \
+                                        if(_res->is_error)                                              \
+                                            return res;                                                 \
                                     }
 
 #define catch(__ok, __res, _for_each)                                                                   \

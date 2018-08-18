@@ -25,7 +25,7 @@ result bar()
 int main()
 {
     int res = 0;
-    catch(res, bar(), {
+    catch(0, bar(), {
         printf("error msg: %s res: %i\n", msg, err);
     });            
     return 0;
