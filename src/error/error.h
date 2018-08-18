@@ -6,7 +6,7 @@
 struct error_t 
 {
     char *msg;
-    void (*err_h)();
+    void *err_d;
     struct error_t *prev_err;
 };
 
@@ -25,15 +25,15 @@ typedef struct result_t* result;
 #pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
 
 
-#define err(__msg, __err_h)                                                                             \
+#define err(__msg, __err_d)                                                                             \
                                     {                                                                   \
                                         char *_msg = __msg;                                             \
-                                        void (*_err_h)() = __err_h;                                     \
+                                        void *_err_d = (void*)__err_d;                                  \
                                         struct result_t *_res = malloc(sizeof(struct result_t));        \
                                         _res->is_error = 1;                                             \
                                         struct error_t *_err = malloc(sizeof(struct error_t));          \
                                         _err->msg = _msg;                                               \
-                                        _err->err_h = _err_h;                                           \
+                                        _err->err_d = _err_d;                                           \
                                         _res->err = _err;                                               \
                                         _res->err->prev_err = 0;                                        \
                                         return _res;                                                    \
@@ -48,17 +48,17 @@ typedef struct result_t* result;
                                         return _res;                                                    \
                                     }
 
-#define try(__ok, __res, __msg, __err_h)                                                                \
+#define try(__ok, __res, __msg, __err_d)                                                                \
                                     {                                                                   \
                                         void *_ok = (void*)__ok;                                        \
                                         struct result_t *_res = __res;                                  \
                                         char *_msg = __msg;                                             \
-                                        void (*_err_h)() = __err_h;                                     \
+                                        void *_err_d = (void*)__err_d;                                  \
                                         if(_res->is_error)                                              \
                                         {                                                               \
                                             struct error_t *_n_err = malloc(sizeof(struct error_t));    \
                                             _n_err->msg = _msg;                                         \
-                                            _n_err->err_h = _err_h;                                     \
+                                            _n_err->err_d = _err_d;                                     \
                                             _n_err->prev_err = _res->err;                               \
                                             _res->err = _n_err;                                         \
                                             return _res;                                                \
@@ -78,7 +78,7 @@ typedef struct result_t* result;
                                             struct error_t *_err = _res->err;                           \
                                             while(_err)                                                 \
                                             {                                                           \
-                                                void (*err_h)() = _err->err_h;                          \
+                                                void *err = _err->err_d;                                \
                                                 char *msg = _err->msg;                                  \
                                                 _for_each;                                              \
                                                 struct error_t *_f_err = _err;                          \
