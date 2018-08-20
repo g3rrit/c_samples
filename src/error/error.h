@@ -40,6 +40,12 @@ typedef struct result_t* result;
                                         return _res;                                                    \
                                     }
 
+#define panic(_msg)                                                                                     \
+                                    {                                                                   \
+                                        printf("!PANIC!: %s\n", _msg);                                  \
+                                        exit(-1);                                                       \
+                                    }                                         
+
 #define ok(__ok)                                                                                        \
                                     {                                                                   \
                                         void *_ok = (void*)__ok;                                        \
@@ -48,6 +54,9 @@ typedef struct result_t* result;
                                         _res->ok = _ok;                                                 \
                                         return _res;                                                    \
                                     }
+
+#define is_error(_res)                                                                                  \
+                                    _res->is_error                                                     
 
 #define try(__ok, __res, __msg, __err_d)                                                                \
                                     {                                                                   \
@@ -74,7 +83,7 @@ typedef struct result_t* result;
                                     {                                                                   \
                                         struct result_t *_res = __res;                                  \
                                         if(_res->is_error)                                              \
-                                            return res;                                                 \
+                                            return _res;                                                 \
                                     }
 
 #define catch(__ok, __res, _for_each)                                                                   \
