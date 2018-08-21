@@ -40,10 +40,18 @@ typedef struct result_t* result;
                                         return _res;                                                    \
                                     }
 
-#define panic(_msg)                                                                                     \
+#define panic(__res, _msg)                                                                              \
                                     {                                                                   \
-                                        printf("!PANIC!: %s\n", _msg);                                  \
-                                        exit(-1);                                                       \
+                                        struct result_t *_res = __res;                                  \
+                                        if(_res->is_error)                                              \
+                                        {                                                               \
+                                            printf("!PANIC!: %s\n", _msg);                              \
+                                            exit(-1);                                                   \
+                                        }                                                               \
+                                        else                                                            \
+                                        {                                                               \
+                                            free(_res);                                                 \
+                                        }                                                               \
                                     }                                         
 
 #define ok(__ok)                                                                                        \
@@ -55,12 +63,8 @@ typedef struct result_t* result;
                                         return _res;                                                    \
                                     }
 
-#define is_error(_res)                                                                                  \
-                                    _res->is_error                                                     
-
-#define try(__ok, __res, __msg, __err_d)                                                                \
+#define try(_ok, __res, __msg, __err_d)                                                                 \
                                     {                                                                   \
-                                        void *_ok = (void*)__ok;                                        \
                                         struct result_t *_res = __res;                                  \
                                         char *_msg = __msg;                                             \
                                         void *_err_d = (void*)__err_d;                                  \
@@ -75,6 +79,7 @@ typedef struct result_t* result;
                                         }                                                               \
                                         else                                                            \
                                         {                                                               \
+                                            free(_res);                                                 \
                                             _ok = _res->ok;                                             \
                                         }                                                               \
                                     }
@@ -83,13 +88,14 @@ typedef struct result_t* result;
                                     {                                                                   \
                                         struct result_t *_res = __res;                                  \
                                         if(_res->is_error)                                              \
-                                            return _res;                                                 \
+                                            return _res;                                                \
+                                        else                                                            \
+                                            free(_res);                                                 \
                                     }
 
-#define catch(__ok, __res, _for_each)                                                                   \
+#define catch(_ok, __res, _for_each)                                                                    \
                                     {                                                                   \
                                         struct result_t *_res = __res;                                  \
-                                        void *_ok = (void*)__ok;                                        \
                                         if(_res->is_error)                                              \
                                         {                                                               \
                                             struct error_t *_err = _res->err;                           \
@@ -106,6 +112,7 @@ typedef struct result_t* result;
                                         }                                                               \
                                         else                                                            \
                                         {                                                               \
+                                            free(_res);                                                 \
                                             _ok = _res->ok;                                             \
                                         }                                                               \
                                     }                                   
