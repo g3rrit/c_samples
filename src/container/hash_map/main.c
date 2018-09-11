@@ -33,6 +33,8 @@ int test_map() {
 
     hash_map_insert(&map, "key1" , "data1");
     printf("first elem\n");
+    hash_map_insert(&map, "key1" , "data1");
+    printf("double\n");
     hash_map_insert(&map, "key2" , "data2");
     printf("elem\n");
     hash_map_insert(&map, "key3" , "data3");
