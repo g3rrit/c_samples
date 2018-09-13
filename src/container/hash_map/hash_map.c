@@ -27,10 +27,16 @@ void hash_map_init(struct hash_map_t *this, size_t len) {
     this->size = 0;
 
     this->arr = malloc(sizeof(struct hash_map_node_t*) * len);
-    if(!this->arr)
+    if(!this->arr) {
         printf("error -> allocation\n");
+        exit(-1);
+    }
 
     memset(this->arr, 0, sizeof(struct hash_map_node_t*) * len);
+}
+
+size_t hash_map_size(struct hash_map_t *this) {
+    return this->size;
 }
 
 void hash_map_delete(struct hash_map_t *this) {
@@ -46,6 +52,9 @@ void hash_map_delete(struct hash_map_t *this) {
             entry = next;
         }
     }
+
+    this->size = 0;
+    this->len = 0;
 }
 
 void hash_map_delete_all(struct hash_map_t *this) {
@@ -62,12 +71,17 @@ void hash_map_delete_all(struct hash_map_t *this) {
             entry = next;
         }
     }
+
+    this->size = 0;
+    this->len = 0;
 }
 
 void hash_map_insert(struct hash_map_t *this, char *key, void *data) {
     struct hash_map_node_t *node = malloc(sizeof(struct hash_map_node_t));
-    if(!node)
+    if(!node) {
         printf("error -> allocation\n");
+        exit(-1);
+    }
 
     *node = (struct hash_map_node_t) {
         .key = key,
@@ -81,6 +95,8 @@ void hash_map_insert(struct hash_map_t *this, char *key, void *data) {
         entry = &(*entry)->next;
 
     *entry = node;
+
+    this->size++;
 }
 
 void *hash_map_get(struct hash_map_t *this, char *key) {
@@ -117,10 +133,12 @@ void *hash_map_remove(struct hash_map_t *this, char *key) {
 
     free(f_node);
 
+    this->size--;
+
     return data;
 }
 
-void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(void *data, char *key, void *ref), void *ref) {
+void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(char *key, void *data, void *ref), void *ref) {
     struct hash_map_node_t *entry = 0;
     struct hash_map_node_t *next = 0;
 
@@ -130,7 +148,7 @@ void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(void *data, char *
         while(entry) {
             next = entry->next;
 
-            void *ret = fun(entry->data, entry->key, ref);
+            void *ret = fun(entry->key, entry->data, ref);
             if(ret)
                 return ret;
 
