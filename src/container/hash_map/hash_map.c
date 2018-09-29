@@ -76,7 +76,7 @@ void hash_map_delete_all(struct hash_map_t *this) {
     this->len = 0;
 }
 
-void hash_map_insert(struct hash_map_t *this, char *key, void *data) {
+void *hash_map_insert(struct hash_map_t *this, char *key, void *data) {
     struct hash_map_node_t *node = malloc(sizeof(struct hash_map_node_t));
     if(!node) {
         printf("error -> allocation\n");
@@ -91,12 +91,17 @@ void hash_map_insert(struct hash_map_t *this, char *key, void *data) {
 
     struct hash_map_node_t **entry = &(this->arr[get_position(key, this->len)]);
 
-    while(*entry)
+    while(*entry) {
+        if(!strcmpy((*entry)->key, key))
+            return (*entry)->data;
+
         entry = &(*entry)->next;
+    }
 
     *entry = node;
 
     this->size++;
+    return 0;
 }
 
 void *hash_map_get(struct hash_map_t *this, char *key) {

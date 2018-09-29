@@ -23,7 +23,8 @@ size_t hash_map_size(struct hash_map_t *this);
 void hash_map_delete(struct hash_map_t *this);
 void hash_map_delete_all(struct hash_map_t *this);
 
-void hash_map_insert(struct hash_map_t *this, char *key, void *data);
+//returns 0 on success otherwise the element that is already present
+void *hash_map_insert(struct hash_map_t *this, char *key, void *data);
 
 void *hash_map_get(struct hash_map_t *this, char *key);
 
