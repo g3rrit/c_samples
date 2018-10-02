@@ -30,6 +30,12 @@ void *hash_map_get(struct hash_map_t *this, char *key);
 
 void *hash_map_remove(struct hash_map_t *this, char *key);
 
-void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(char *key, void *data, void *ref), void *ref);
+typedef void(*hash_map_for_each_f)(char *key, void *data, void *ref);
+
+typedef void(*hash_map_call_f)(void *data);
+
+void hash_map_call(struct hash_map_t *this, void (*fun)(void *data));
+
+void hash_map_for_each(struct hash_map_t *this, void (*fun)(char *key, void *data, void *ref), void *ref);
 
 #endif

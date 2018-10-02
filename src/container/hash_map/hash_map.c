@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 size_t get_position(char *name, size_t max_size) {
     size_t s_t_s = sizeof(size_t);
@@ -92,7 +93,7 @@ void *hash_map_insert(struct hash_map_t *this, char *key, void *data) {
     struct hash_map_node_t **entry = &(this->arr[get_position(key, this->len)]);
 
     while(*entry) {
-        if(!strcmpy((*entry)->key, key))
+        if(!strcmp((*entry)->key, key))
             return (*entry)->data;
 
         entry = &(*entry)->next;
@@ -143,7 +144,18 @@ void *hash_map_remove(struct hash_map_t *this, char *key) {
     return data;
 }
 
-void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(char *key, void *data, void *ref), void *ref) {
+void hash_map_call(struct hash_map_t *this, void (*fun)(void *data)) {
+    struct hash_map_node_t *entry = 0;
+    struct hash_map_node_t *next = 0;
+
+    for(int i = 0; i < this->len; i++) {
+        next = this->arr[i];
+        fun(entry->data);
+        entry = next;
+    }
+}
+
+void hash_map_for_each(struct hash_map_t *this, void (*fun)(char *key, void *data, void *ref), void *ref) {
     struct hash_map_node_t *entry = 0;
     struct hash_map_node_t *next = 0;
 
@@ -152,16 +164,10 @@ void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(char *key, void *d
 
         while(entry) {
             next = entry->next;
-
-            void *ret = fun(entry->key, entry->data, ref);
-            if(ret)
-                return ret;
-
+            fun(entry->key, entry->data, ref);
             entry = next;
         }
     }
-
-    return 0;
 }
 
 

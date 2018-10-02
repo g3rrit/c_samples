@@ -280,20 +280,36 @@ void *list_remove_node(struct list_t *this, struct list_node *node)
     return resdata;
 }
 
-void *list_for_each(struct list_t *this, void *(*fun)(void *data, void *ref, struct list_info *info), void *ref)
+void list_call(struct list_t *this, void (*fun)(void *data)) {
+    if(!(this->head))
+        return;
+
+    struct list_node *entry = this->head;
+    struct list_node *next;
+
+    while(entry) {
+        next = entry->next;
+        fun(entry->data);
+        entry = next;
+    }
+}
+
+void list_for_each(struct list_t *this, void (*fun)(void *data, void *ref), void *ref)
 {
     if(!(this->head))
-        return 0;
+        return;
 
     struct list_node *entry = (this->head);
 
     void *retval = 0;
 
+    /*
     struct list_info info;
     info.this = this;
     info.entry = entry;
     info.pos = 0;
     info.size = this->size;
+    */
 
     /*
     while(!(retval = fun((*entry)->data, ref, &info)) && (*entry)->next)
@@ -321,10 +337,7 @@ void *list_for_each(struct list_t *this, void *(*fun)(void *data, void *ref, str
         else
             run_l = 0;
 
-        if((retval = fun(e_data, ref, &info)))
-            break;
+        fun(e_data, ref);
     }
     while(run_l);
-
-    return retval;
 }

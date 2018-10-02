@@ -9,7 +9,7 @@
 struct hash_tree_node_t {
     void *data;
     struct hash_map_t *tree;
-}
+};
 
 struct hash_tree_t {
     struct hash_map_t root; 
@@ -34,6 +34,12 @@ void *hash_tree_get(struct hash_tree_t *this, ...);
 
 void *hash_tree_remove(struct hash_tree_t *this, ...);
 
-void *hash_tree_for_each(struct hash_tree_t *this, void *(*fun)(void *data, void *ref, ...), void *ref);
+typedef void (*hash_tree_for_each_f)(void *data, void *ref, char **keys);
+
+typedef void (*hash_tree_call_f)(void *data);
+
+void hash_tree_call(struct hash_tree_t *this, void (*fun)(void *data));
+
+void hash_tree_for_each(struct hash_tree_t *this, void (*fun)(void *data, void *ref, char **keys), void *ref);
 
 #endif
