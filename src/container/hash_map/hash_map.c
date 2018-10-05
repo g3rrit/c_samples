@@ -54,6 +54,8 @@ void hash_map_delete(struct hash_map_t *this) {
         }
     }
 
+    free(this->arr);
+    this->arr = 0;
     this->size = 0;
     this->len = 0;
 }
@@ -73,6 +75,8 @@ void hash_map_delete_all(struct hash_map_t *this) {
         }
     }
 
+    free(this->arr);
+    this->arr = 0;
     this->size = 0;
     this->len = 0;
 }
