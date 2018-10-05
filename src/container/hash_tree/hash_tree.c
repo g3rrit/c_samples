@@ -48,13 +48,11 @@ size_t hash_tree_size(struct hash_tree_t *this) {
     return this->size;
 }
 
-void *hash_tree_insert(struct hash_tree_t *this, void *data,  ...) {
-    va_list args;
-    va_start(args, data);
-
-    char *key = va_arg(args, char*);
+void *hash_tree_insert(struct hash_tree_t *this, char **keys, void *data) {
+    int i = 0;
+    char *key = keys[i];
+    i++;
     if(!key) {
-        va_end(args);
         return 0;
     }
 
@@ -73,16 +71,15 @@ void *hash_tree_insert(struct hash_tree_t *this, void *data,  ...) {
             hash_map_insert(tree, key, entry);
         }
         
-        key = va_arg(args, char*);
+        key = keys[i];
+        i++;
 
         if(!key) {
             if(entry->data) {
-                va_end(args);
                 return entry->data;
             } 
             entry->data = data;
             this->size++;
-            va_end(args);
             return 0;
         } else {
             if(!entry->tree) {
@@ -100,13 +97,11 @@ void *hash_tree_insert(struct hash_tree_t *this, void *data,  ...) {
     }
 }
 
-void *hash_tree_get(struct hash_tree_t *this, ...) {
-    va_list args;
-    va_start(args, this);
-
-    char *key = va_arg(args, char*);
+void *hash_tree_get(struct hash_tree_t *this, char **keys) {
+    int i = 0;
+    char *key = keys[i];
+    i++;
     if(!key) {
-        va_end(args);
         return 0;
     }
 
@@ -115,18 +110,16 @@ void *hash_tree_get(struct hash_tree_t *this, ...) {
     for(;;) {
         entry = hash_map_get(tree, key);
         if(!entry) {
-            va_end(args);
             return 0;
         }
 
-        key = va_arg(args, char*);
+        key = keys[i];
+        i++;
 
         if(!key) {
-            va_end(args);
             return entry->data;
         } else {
             if(!entry->tree) {
-                va_end(args);
                 return 0;
             }
             tree = entry->tree;
@@ -164,13 +157,11 @@ void hash_tree_for_each_delete_entries(char *key, struct hash_tree_node_t *data,
     }
 }
 
-void *hash_tree_remove(struct hash_tree_t *this, ...) {
-    va_list args;
-    va_start(args, this);
-
-    char *key = va_arg(args, char*);
+void *hash_tree_remove(struct hash_tree_t *this, char **keys) {
+    int i = 0;
+    char *key = keys[i];
+    i++;
     if(!key) {
-        va_end(args);
         return 0;
     }
 
@@ -179,11 +170,11 @@ void *hash_tree_remove(struct hash_tree_t *this, ...) {
     for(;;) {
         entry = hash_map_get(tree, key);
         if(!entry) {
-            va_end(args);
             return 0;
         }
 
-        key = va_arg(args, char*);
+        key = keys[i];
+        i++;
 
         if(!key) {
             //delete substrees
@@ -212,7 +203,6 @@ void *hash_tree_remove(struct hash_tree_t *this, ...) {
 
         } else {
             if(!entry->tree) {
-                va_end(args);
                 return 0;
             }
             tree = entry->tree;
@@ -264,7 +254,7 @@ void hash_tree_for_each_for_each(char *key, struct hash_tree_node_t *data, struc
     ref->keys[ref->depth] = 0;
 }
 
-void hash_tree_for_each(struct hash_tree_t *this, void (*fun)(void *data, void *ref, char **keys), void *ref) { 
+void hash_tree_for_each(struct hash_tree_t *this, void (*fun)(char **keys, void *data, void *ref), void *ref) { 
     char *keys[32] = {0}; 
 
     struct hash_tree_for_each_ref_t h_ref = {
