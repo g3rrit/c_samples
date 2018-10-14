@@ -47,6 +47,16 @@ void *array_remove(struct array_t *this, size_t pos) {
     if(this->size <= this->len/2 && this->len > 16) {
         array_shrink(this);
     }
+
+    if(pos >= this->size) {
+        return 0;
+    }
+
+    void *res = this->data[pos];
+    for(size_t i = pos; i < this->size - 1; i++) {
+        this->data[i] = this->data[i + 1];
+    }
+    return res;
 }
 
 void *array_at(struct array_t *this, size_t pos) {
