@@ -18,15 +18,24 @@ struct hash_map_t {
 
 void hash_map_init(struct hash_map_t *this, size_t len);
 
+size_t hash_map_size(struct hash_map_t *this);
+
 void hash_map_delete(struct hash_map_t *this);
 void hash_map_delete_all(struct hash_map_t *this);
 
-void hash_map_insert(struct hash_map_t *this, char *key, void *data);
+//returns 0 on success otherwise the element that is already present
+void *hash_map_insert(struct hash_map_t *this, char *key, void *data);
 
 void *hash_map_get(struct hash_map_t *this, char *key);
 
 void *hash_map_remove(struct hash_map_t *this, char *key);
 
-void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(void *data, char *key, void *ref), void *ref);
+typedef void(*hash_map_for_each_f)(char *key, void *data, void *ref);
+
+typedef void(*hash_map_call_f)(void *data);
+
+void hash_map_call(struct hash_map_t *this, void (*fun)(void *data));
+
+void hash_map_for_each(struct hash_map_t *this, void (*fun)(char *key, void *data, void *ref), void *ref);
 
 #endif

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 size_t get_position(char *name, size_t max_size) {
     size_t s_t_s = sizeof(size_t);
@@ -27,10 +28,16 @@ void hash_map_init(struct hash_map_t *this, size_t len) {
     this->size = 0;
 
     this->arr = malloc(sizeof(struct hash_map_node_t*) * len);
-    if(!this->arr)
+    if(!this->arr) {
         printf("error -> allocation\n");
+        exit(-1);
+    }
 
     memset(this->arr, 0, sizeof(struct hash_map_node_t*) * len);
+}
+
+size_t hash_map_size(struct hash_map_t *this) {
+    return this->size;
 }
 
 void hash_map_delete(struct hash_map_t *this) {
@@ -46,6 +53,11 @@ void hash_map_delete(struct hash_map_t *this) {
             entry = next;
         }
     }
+
+    free(this->arr);
+    this->arr = 0;
+    this->size = 0;
+    this->len = 0;
 }
 
 void hash_map_delete_all(struct hash_map_t *this) {
@@ -62,12 +74,19 @@ void hash_map_delete_all(struct hash_map_t *this) {
             entry = next;
         }
     }
+
+    free(this->arr);
+    this->arr = 0;
+    this->size = 0;
+    this->len = 0;
 }
 
-void hash_map_insert(struct hash_map_t *this, char *key, void *data) {
+void *hash_map_insert(struct hash_map_t *this, char *key, void *data) {
     struct hash_map_node_t *node = malloc(sizeof(struct hash_map_node_t));
-    if(!node)
+    if(!node) {
         printf("error -> allocation\n");
+        exit(-1);
+    }
 
     *node = (struct hash_map_node_t) {
         .key = key,
@@ -77,10 +96,17 @@ void hash_map_insert(struct hash_map_t *this, char *key, void *data) {
 
     struct hash_map_node_t **entry = &(this->arr[get_position(key, this->len)]);
 
-    while(*entry)
+    while(*entry) {
+        if(!strcmp((*entry)->key, key))
+            return (*entry)->data;
+
         entry = &(*entry)->next;
+    }
 
     *entry = node;
+
+    this->size++;
+    return 0;
 }
 
 void *hash_map_get(struct hash_map_t *this, char *key) {
@@ -117,10 +143,23 @@ void *hash_map_remove(struct hash_map_t *this, char *key) {
 
     free(f_node);
 
+    this->size--;
+
     return data;
 }
 
-void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(void *data, char *key, void *ref), void *ref) {
+void hash_map_call(struct hash_map_t *this, void (*fun)(void *data)) {
+    struct hash_map_node_t *entry = 0;
+    struct hash_map_node_t *next = 0;
+
+    for(int i = 0; i < this->len; i++) {
+        next = this->arr[i];
+        fun(entry->data);
+        entry = next;
+    }
+}
+
+void hash_map_for_each(struct hash_map_t *this, void (*fun)(char *key, void *data, void *ref), void *ref) {
     struct hash_map_node_t *entry = 0;
     struct hash_map_node_t *next = 0;
 
@@ -129,16 +168,10 @@ void *hash_map_for_each(struct hash_map_t *this, void *(*fun)(void *data, char *
 
         while(entry) {
             next = entry->next;
-
-            void *ret = fun(entry->data, entry->key, ref);
-            if(ret)
-                return ret;
-
+            fun(entry->key, entry->data, ref);
             entry = next;
         }
     }
-
-    return 0;
 }
 
 

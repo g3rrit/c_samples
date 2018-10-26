@@ -39,9 +39,15 @@ void *list_at(struct list_t *this, int x);
 void *list_remove_at(struct list_t *this, int x);
 void *list_remove_node(struct list_t *this, struct list_node *node);
 
+typedef void (*list_for_each_f)(void *data, void *ref);
+
+typedef void (*list_call_f)(void *data);
+
+void list_call(struct list_t *this, void (*fun)(void *data));
+
 //if fun returns something other than 0 stop
 //returns 0 if all objects where iterated
-void *list_for_each(struct list_t *this, void *(*fun)(void *data, void *ref, struct list_info *info), void *ref);
+void list_for_each(struct list_t *this, void (*fun)(void *data, void *ref), void *ref);
 
 //------------------------- 
 
