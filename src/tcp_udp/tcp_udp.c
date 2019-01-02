@@ -23,100 +23,40 @@
 #define INET_HDR_LEN 5
 
 
-// For little endian
-struct pseudo_iphdr
-{
-    uint32_t source_addr;
-    uint32_t dest_addr;
-    uint8_t zeros;
-    uint8_t prot;
-    uint16_t length;
-};
-
-
-uint16_t checksum(uint8_t *data, unsigned int size)
-{
-    int i;
-    int sum = 0;
-    uint16_t *p = (uint16_t *)data;
-
-    for(i = 0; i < size; i += 2){
-        sum += *(p++);
-    }
-
-    uint16_t carry = sum >> 16;
-    uint16_t tmp = 0x0000ffff & sum;
-    uint16_t res = ~(tmp + carry);
-
-    return res;
-}
-
-unsigned short csum(unsigned short *buf, int nwords) {
-  unsigned long sum;
-  for (sum = 0; nwords > 0; nwords--)
-    sum += *buf++;
-  sum = (sum >> 16) + (sum & 0xffff);
-  sum += (sum >> 16);
-  return ~sum;
-}
-
-
 unsigned int ip_packet_create(uint8_t *packet, struct in_addr src_addr, struct in_addr dst_addr, uint8_t protocol) {
-    struct iphdr *ip_header = (struct iphdr*) packet;
+    struct iphdr *iph = (struct iphdr*) packet;
 
-    ip_header->version = 4;
-    ip_header->ihl = INET_HDR_LEN;
-    ip_header->tos = 0;
-    ip_header->tot_len = htons(INET_HDR_LEN * 4 + data_size);
-    ip_header->id = 0; // Filled in automatically
-    ip_header->frag_off = 0;
-    ip_header->ttl = 64;
-    ip_header->protocol = protocol;
-    ip_header->check = 0; // Filled in automatically
-    ip_header->saddr = src_addr.s_addr;
-    ip_header->daddr = dst_addr.s_addr;
+    iph->version = 4;
+    iph->ihl = INET_HDR_LEN;
+    iph->tos = 0;
+    iph->tot_len = htons(INET_HDR_LEN * 4 + data_size);
+    iph->id = 0; // Filled in automatically
+    iph->frag_off = 0;
+    iph->ttl = 64;
+    iph->protocol = protocol;
+    iph->check = 0; // Filled in automatically
+    iph->saddr = src_addr.s_addr;
+    iph->daddr = dst_addr.s_addr;
 
     return sizeof(struct iphdr);
 }
 
-
-#define MAX_PSEUDO_PKT_SIZE 1024
-
-unsigned int udp_packet_create(uint8_t *packet, struct sockaddr_in src_addr, struct sockaddr_in dst_addr, uint8_t *data, unsigned int data_size) {
-    uint8_t pseudo_packet[MAX_PSEUDO_PKT_SIZE];
-    uint16_t length;
-    struct udphdr *udph = (struct udphdr*) packet;
-    struct pseudo_iphdr *p_iphdr = (struct pseudo_iphdr *)pseudo_packet;
+unsigned int udp_packet_create(uint8_t *packet, unsigned int data_size) {
+    struct iphdr *iphd = (struct iphdr*) packet;
+    struct udphdr *udph = (struct udphdr*) packet + sizeof(struct iphdr);
 
     length = UDP_HDR_SIZE + data_size;
-    udph->source = src_addr.sin_port;
-    udph->dest = dst_addr.sin_port;
+    udph->source = iph->saddr.sin_port;
+    udph->dest = iph->daddr.sin_port;
     udph->len = htons(length);
-
-    if(length + sizeof(struct pseudo_iphdr) > MAX_PSEUDO_PKT_SIZE){
-        fprintf(stderr, "Buffer size not enough");
-        exit(1);
-    }
-
-    // Calculate checksum with pseudo ip header
-    p_iphdr->source_addr = src_addr.sin_addr.s_addr;
-    p_iphdr->dest_addr = dst_addr.sin_addr.s_addr;
-    p_iphdr->zeros = 0;
-    p_iphdr->prot = IPPROTO_UDP; //udp
-    p_iphdr->length = udph->len;
-
-    // Do NOT use udph->len instead of length.
-    // udph->len is in big endian
-    memcpy(pseudo_packet + sizeof(struct pseudo_iphdr), udph, length);
-    memcpy(pseudo_packet + sizeof(struct pseudo_iphdr) + sizeof(struct udph), data_size);
-    udph->check = cm(pseudo_packet, sizeof(struct pseudo_iphdr) + length);
+    udph->check = 0;
 
     return sizeof(struct udphdr);
 }
 
-unsigned int tcp_packet_create(uint8_t *packet, struct sockaddr_in src_addr, struct sockaddr_in dest_addr, uint8_t *data, unsigned int data_size) {
-
-  struct tcphdr *tcph = (struct tcphdr*) packet;
+unsigned int tcp_packet_create(uint8_t *packet, unsigned short src_port, unsigned short dest_port) {
+  struct iphdr *iph = (struct iphdr*) packet;
+  struct tcphdr *tcph = (struct tcphdr*) packet + sizeof(struct iphdr);
 
   tcph->th_sport = htons (src_port);	/* arbitrary port */
   tcph->th_dport = htons (dest_port);
@@ -130,26 +70,11 @@ unsigned int tcp_packet_create(uint8_t *packet, struct sockaddr_in src_addr, str
                       should fill in the correct checksum during transmission */
   tcph->th_urp = 0;
 
- 
+  return sizeof(struct tcphdr);
 }
 
-int send_tcp_packet(int s, struct sockaddr_in addr) {
-
-  return 1;
-}
-
-int send_udp_packet(int s, struct sockaddr_in addr) {
-    int flag = 1;
-    unsigned int packet_size;
-    unsigned int ip_payload_size;
-    uint8_t packet[ETH_DATA_LEN];
-
-    memset(packet, 0, ETH_DATA_LEN);
-    ip_payload_size = build_udp_packet(src_addr, dst_addr, packet + sizeof(struct iphdr), data, data_size);
-
-    packet_size = build_ip_packet(src_addr.sin_addr, dst_addr.sin_addr, IPPROTO_UDP, packet, packet + sizeof(struct iphdr), ip_payload_size);
-
-    if(sendto(s, packet, packet_size, 0, (struct sockaddr *)&dst_addr, sizeof(dst_addr)) < 0){
+int send_packet(int s, struct sockaddr_in addr, uint8_t *packet, unsigned int packet_size) {
+    if(sendto(s, packet, packet_size, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0){
         perror("sendto");
         return 0;
     }
@@ -193,45 +118,42 @@ void hexdump(unsigned char *data, unsigned int data_bytes)
 
 int main(void)
 {
-    int raw_sock;
-    uint8_t packet[ETH_DATA_LEN];
-    uint8_t udp_packet[ETH_DATA_LEN];
-    uint8_t data[MAX_DATA_SIZE];
-    char *sending_data = "AAAAAAAA";
-    char *localhost = "127.0.0.1";
+    int s;
+    uint8_t buffer[2048];
+    unsigned int buffer_size = 0;
+    unsigned int packet_size = 0;
+    unsigned int data_size = 0;
+    char *desthost = "127.0.0.1";
     char *srchost = "192.168.0.1";
-    unsigned int packet_size;
-    unsigned int data_size;
+    unsigned short src_port = 2028;
+    unsigned short dest_port = 4086;
     struct sockaddr_in src_addr;
     struct sockaddr_in dst_addr;
 
     src_addr.sin_family = AF_INET;
-    src_addr.sin_port = htons(2048);
+    src_addr.sin_port = htons(src_port);
     inet_aton(srchost, &src_addr.sin_addr);
 
     dst_addr.sin_family = AF_INET;
-    dst_addr.sin_port = htons(4086);
-    inet_aton(localhost, &dst_addr.sin_addr);
+    dst_addr.sin_port = htons(dest_port);
+    inet_aton(desthost, &dst_addr.sin_addr);
 
-    strcpy((char *)data, sending_data);
-    data_size = strlen(sending_data);
+    printf("[+] Build IP packet...\n\n");
+    packet_size = build_ip_packet(buffer, src_addr, dest_addr, IPPROTO_UDP);
+    hexdump(buffer, packet_size);
+    printf("\n\n");
 
     printf("[+] Build UDP packet...\n\n");
-    packet_size = build_udp_packet(src_addr, dst_addr, udp_packet, data, data_size);
+    packet_size = build_udp_packet(buffer, data_size);
     hexdump(udp_packet, packet_size);
     printf("\n\n");
 
-    printf("[+] Build IP packet...\n\n");
-    packet_size = build_ip_packet(src_addr.sin_addr, dst_addr.sin_addr, IPPROTO_UDP, packet, udp_packet, packet_size);
-    hexdump(packet, packet_size);
-    printf("\n\n");
-
     printf("[+] Send UDP packet...\n");
-    if((raw_sock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0){
+    if((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0){
         perror("socket");
         exit(1);
     }
-    send_udp_packet(raw_sock, src_addr, dst_addr, data, data_size);
+    send_packet(s, dst_addr, buffer, buffer_size);
 
     return 0;
 }
