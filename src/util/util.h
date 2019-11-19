@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-inline void error(const char *fmt, ...) {
+static inline void panic(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   printf("ERROR: ");
